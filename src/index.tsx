@@ -1,8 +1,10 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
+import { initializeIcons } from "@fluentui/react"
 import App from './app'
 import reportWebVitals from './reportWebVitals'
-import './index.css'
+
+initializeIcons()
 
 ReactDOM.render(
     <React.StrictMode>
