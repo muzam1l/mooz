@@ -1,7 +1,26 @@
 import { PartialTheme } from '@fluentui/react'
 
 export const defaultTheme: PartialTheme = {
-    stylesheets: ['body { margin: 0; }'],
+    stylesheets: [
+        `
+
+    body {
+        margin: 0;
+        overflow: hidden;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
+    * {
+        box-sizing: border-box;
+    }
+    *:before {
+        box-sizing: border-box;
+    }
+    *:after {
+        box-sizing: border-box;
+    }
+    `,
+    ],
 }
 
 export const lightPaletteAlt: PartialTheme = {
