@@ -31,7 +31,7 @@ export const darkOption = mergeStyles({
 export const containerStyles: ICommandBarStyles = {
     root: {
         padding: '0 .5em',
-        height: '36px',
+        height: '40px',
     },
 }
 

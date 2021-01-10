@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import type { FunctionComponent } from 'react'
-import CommanBar from '../comps/command-bar'
+import CommanBar from './command-bar'
 import SidePanel from './side-panel'
+import VideoBoxes from "./video-boxes";
 
 import ThemeProvider from '../utils/theme-context'
 
@@ -12,11 +13,7 @@ const App: FunctionComponent = () => {
     return (
         <ThemeProvider>
             <CommanBar onClickChat={onClickChat} onClickPeople={onClickPeople} />
-            <p>
-                Lorem ipsum dolor, sit amet consectetur adipisicing elit. Ducimus dicta nulla rem
-                vero voluptas distinctio facere impedit sapiente deleniti eos molestias officia esse
-                error tempora mollitia earum, dolorum fugit? Ex?
-            </p>
+            <VideoBoxes />
 
             <SidePanel setPanel={setPanel} panel={panel} onDismiss={() => setPanel('')} />
         </ThemeProvider>
