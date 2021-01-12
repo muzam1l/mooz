@@ -1,6 +1,7 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
-import { initializeIcons } from "@fluentui/react"
+import { initializeIcons } from '@fluentui/react'
+import { RecoilRoot } from 'recoil'
 import App from './app'
 import reportWebVitals from './reportWebVitals'
 
@@ -8,7 +9,9 @@ initializeIcons()
 
 ReactDOM.render(
     <React.StrictMode>
-        <App />
+        <RecoilRoot>
+            <App />
+        </RecoilRoot>
     </React.StrictMode>,
     document.getElementById('root'),
 )

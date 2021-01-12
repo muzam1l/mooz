@@ -25,6 +25,13 @@
     "rules": {
         "react/react-in-jsx-scope": "off",
         "react/prop-types": "off", // Since we do not use prop-types
-        "react/require-default-props": "off" // Since we do not use prop-types
+        "react/require-default-props": "off", // Since we do not use prop-types
+        "react-hooks/rules-of-hooks": "error",
+        "react-hooks/exhaustive-deps": [
+            "warn",
+            {
+                "additionalHooks": "useRecoilCallback"
+            }
+        ]
     }
 }

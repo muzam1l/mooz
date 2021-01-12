@@ -1,9 +1,12 @@
-import { CommandBar, DefaultButton, ThemeProvider } from '@fluentui/react'
+import { CommandBar, DefaultButton, ThemeProvider, useTheme } from '@fluentui/react'
 import type { ICommandBarItemProps, IButtonProps } from '@fluentui/react'
-import type { FunctionComponent } from 'react'
+import { FunctionComponent } from 'react'
+import { useRecoilValue } from 'recoil'
+import { audioDevicesState, videoDevicesState } from '../../atoms'
+import { useDisplayMedia, useUserMedia } from '../use-streams'
 import { LeaveButtonStyles, buttonStyles, containerStyles, lightOption, darkOption } from './styles'
 import { darkPaletteAlt, lightPaletteAlt } from '../../utils/themes'
-import { useTheme, useSetTheme } from '../../utils/theme-context'
+import { useTheme as useThemeType, useSetTheme } from '../../utils/theme-context'
 
 interface MyCommandBarProps {
     onClickPeople?: () => void
@@ -12,9 +15,32 @@ interface MyCommandBarProps {
 
 const MyCommandBar: FunctionComponent<MyCommandBarProps> = ({ onClickPeople, onClickChat }) => {
     const theme = useTheme()
+    const themeType = useThemeType()
     const setTheme = useSetTheme()
+
+    const audioDevices = useRecoilValue(audioDevicesState)
+    const videoDevices = useRecoilValue(videoDevicesState)
+    const { displayMediaStatus, startDisplayMedia, stopDisplayMedia } = useDisplayMedia()
+    const { currentMicId, currentCameraId, startUserMedia, stopUserMedia } = useUserMedia()
+
+    const iconMuted = {
+        color: theme.palette.neutralDark,
+    }
+
     const items: ICommandBarItemProps[] = [
         {
+            iconProps: currentMicId
+                ? { iconName: 'Microphone' }
+                : { iconName: 'MicOff', style: iconMuted },
+            onClick: () => {
+                // eslint-disable-next-line
+                const dummyDevice: any = {
+                    kind: 'audioinput',
+                }
+                if (!currentMicId)
+                    startUserMedia(audioDevices.length ? audioDevices[0] : dummyDevice)
+                else stopUserMedia('audioinput')
+            },
             buttonStyles,
             key: 'audioToggle',
             // iconOnly: true,
@@ -23,17 +49,76 @@ const MyCommandBar: FunctionComponent<MyCommandBarProps> = ({ onClickPeople, onC
                 content: 'Toggle audio',
                 delay: 0,
             },
-            iconProps: { iconName: 'Microphone' },
+            split: true,
+            subMenuProps: !audioDevices.length
+                ? undefined
+                : {
+                      items: audioDevices.map(device => ({
+                          key: device.deviceId,
+                          text: device.label,
+                          iconProps:
+                              currentMicId === device.deviceId
+                                  ? { iconName: 'TVMonitorSelected' }
+                                  : undefined,
+                          onClick: () => {
+                              startUserMedia(device)
+                          },
+                      })),
+                  },
         },
         {
+            iconProps: currentCameraId
+                ? { iconName: 'Video' }
+                : { iconName: 'VideoOff', style: iconMuted },
+            onClick: () => {
+                // eslint-disable-next-line
+                const dummyDevice: any = {
+                    kind: 'videoinput',
+                }
+                if (!currentCameraId)
+                    startUserMedia(videoDevices.length ? videoDevices[0] : dummyDevice)
+                else stopUserMedia('videoinput')
+            },
             buttonStyles,
             key: 'videoToggle',
             // iconOnly: true,
             text: 'Video',
-            iconProps: { iconName: 'Video' },
             tooltipHostProps: {
                 content: 'Toggle video',
                 delay: 0,
+            },
+            split: true,
+            subMenuProps: !videoDevices.length
+                ? undefined
+                : {
+                      items: videoDevices.map(device => ({
+                          key: device.deviceId,
+                          text: device.label,
+                          iconProps:
+                              currentCameraId === device.deviceId
+                                  ? { iconName: 'TVMonitorSelected' }
+                                  : undefined,
+                          onClick: () => {
+                              startUserMedia(device)
+                          },
+                      })),
+                  },
+        },
+        {
+            key: 'screen',
+            text: 'Screen',
+            // iconOnly: true,
+            iconProps: {
+                iconName: 'ScreenCast',
+                style: displayMediaStatus !== 'on' ? iconMuted : {},
+            },
+            tooltipHostProps: {
+                content: displayMediaStatus === 'on' ? 'Stop sharing' : 'Share your screen',
+                delay: 0,
+            },
+            onClick: () => {
+                if (displayMediaStatus === 'on') stopDisplayMedia()
+                else startDisplayMedia()
             },
         },
         {
@@ -46,7 +131,7 @@ const MyCommandBar: FunctionComponent<MyCommandBarProps> = ({ onClickPeople, onC
                 iconName: 'Chat',
             },
             tooltipHostProps: {
-                content: 'Open chat',
+                content: 'Open chats',
                 delay: 0,
             },
         },
@@ -70,7 +155,7 @@ const MyCommandBar: FunctionComponent<MyCommandBarProps> = ({ onClickPeople, onC
         {
             key: 'theme',
             text: 'Choose theme',
-            secondaryText: theme,
+            secondaryText: themeType,
             iconProps: { iconName: 'Contrast' },
             subMenuProps: {
                 items: [
@@ -78,13 +163,13 @@ const MyCommandBar: FunctionComponent<MyCommandBarProps> = ({ onClickPeople, onC
                         key: 'light',
                         text: 'Light',
                         className: lightOption,
-                        onClick: () => theme === 'dark' && setTheme?.('light'),
+                        onClick: () => themeType === 'dark' && setTheme?.('light'),
                     },
                     {
                         key: 'dark',
                         text: 'Dark',
                         className: darkOption,
-                        onClick: () => theme === 'light' && setTheme?.('dark'),
+                        onClick: () => themeType === 'light' && setTheme?.('dark'),
                     },
                 ],
             },
@@ -109,7 +194,7 @@ const MyCommandBar: FunctionComponent<MyCommandBarProps> = ({ onClickPeople, onC
             iconProps: { iconName: 'Info' },
         },
     ]
-    const palette = theme === 'dark' ? darkPaletteAlt : lightPaletteAlt
+    const palette = themeType === 'dark' ? darkPaletteAlt : lightPaletteAlt
     return (
         <ThemeProvider theme={{ ...palette }}>
             <CommandBar
