@@ -1,4 +1,3 @@
-
 /* eslint-disable @typescript-eslint/naming-convention, no-plusplus */
 export const one = 1
 
@@ -7,7 +6,12 @@ Returns max videobox size
 Responsive but slow to render TODO replace with faster soulution
 Taken from stackoverflow for squares,modified for rect with aspect ratio 
 */
-export function getVideoBoxSize(X: number, Y: number, n: number, aspect_ratio = 1): { x: number; y: number } {
+export function getVideoBoxSize(
+    X: number,
+    Y: number,
+    n: number,
+    aspect_ratio = 1,
+): { x: number; y: number } {
     // total number of tiles
     const tile_count: number = n
     // height of rectangle

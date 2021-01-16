@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { getVideoBoxSize } from '../../utils/helpers'
+import { getVideoBoxSize } from '../helpers'
 
 const TOP_BAR_HEIGHT = 40
 const useVideoSize = (N = 1, AR = 1): { x: number; y: number } => {

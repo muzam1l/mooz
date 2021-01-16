@@ -9,14 +9,16 @@ const videoCLassname = mergeStyles({
 })
 interface VideoBoxProps {
     stream: MediaStream
+    muted?: boolean
 }
 /* eslint-disable jsx-a11y/media-has-caption */
-const VideoBox: FunctionComponent<VideoBoxProps> = ({ stream }) => {
+const VideoBox: FunctionComponent<VideoBoxProps> = ({ stream, muted = false }) => {
     const videoElem = useRef<HTMLVideoElement | null>(null)
     useEffect(() => {
         const video = videoElem.current
         if (video) {
             video.srcObject = stream
+            video.oncanplay = () => video.play()
         }
     }, [stream, videoElem])
 
@@ -25,11 +27,11 @@ const VideoBox: FunctionComponent<VideoBoxProps> = ({ stream }) => {
             ref={videoElem}
             className={videoCLassname}
             controls={false}
-            muted
+            muted={muted}
             autoPlay
             playsInline
         >
-            Seriously How old are you and your browser!
+            Seriously, How old are you and your browser!
         </video>
     )
 }

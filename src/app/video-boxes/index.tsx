@@ -1,8 +1,8 @@
-import { FunctionComponent, useState } from 'react'
+import { FunctionComponent } from 'react'
 import { mergeStyles, Stack, useTheme } from '@fluentui/react'
-import { useRecoilState } from 'recoil'
-import useSize from './use-video-size'
-import { userStreamState, displayStreamState } from '../../atoms'
+import { useRecoilValue } from 'recoil'
+import useSize from '../../utils/hooks/use-video-size'
+import { userStreamState, displayStreamState, remoteStreamsState } from '../../atoms'
 import VideoBox from '../../comps/video'
 
 const container = mergeStyles({
@@ -20,9 +20,9 @@ const AR = 4 / 3
 const VideoBoxes: FunctionComponent = () => {
     const theme = useTheme()
 
-    const [userMedia] = useRecoilState(userStreamState)
-    const [displayMedia] = useRecoilState(displayStreamState)
-    const [remoteStreams] = useState<MediaStream[]>([])
+    const userMedia = useRecoilValue(userStreamState)
+    const displayMedia = useRecoilValue(displayStreamState)
+    const remoteStreams = useRecoilValue(remoteStreamsState)
 
     let count = remoteStreams.length
     if (userMedia) count += 1
@@ -37,15 +37,17 @@ const VideoBoxes: FunctionComponent = () => {
                         <Stack
                             key={stream.id}
                             style={{
-                                maxHeight: '90vh',
-                                maxWidth: `calc( 90vh * ${AR} )`,
-                                height: y,
-                                width: x,
+                                // maxHeight: '90vh',
+                                // maxWidth: `calc( 90vh * ${AR} )`,
+                                maxHeight: y,
+                                maxWidth: x,
+                                height: '100%',
+                                width: '100%',
                                 backgroundColor: theme.palette.neutralLight,
                                 border: `1px solid ${theme.palette.white}`,
                             }}
                         >
-                            <VideoBox stream={stream} />
+                            <VideoBox muted={stream.id === userMedia?.id} stream={stream} />
                         </Stack>
                     ),
             )}

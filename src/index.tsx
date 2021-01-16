@@ -4,12 +4,14 @@ import { initializeIcons } from '@fluentui/react'
 import { RecoilRoot } from 'recoil'
 import App from './app'
 import reportWebVitals from './reportWebVitals'
+import { DebugObserver } from './atoms'
 
 initializeIcons()
 
 ReactDOM.render(
     <React.StrictMode>
         <RecoilRoot>
+            <DebugObserver />
             <App />
         </RecoilRoot>
     </React.StrictMode>,

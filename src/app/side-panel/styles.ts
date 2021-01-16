@@ -90,15 +90,15 @@ export const useModalClassnames = makeStyles(theme => ({
         flex: '4 4 auto',
         padding: '0 1em',
         overflowY: 'auto',
-        height: '100%'
+        height: '100%',
     },
 }))
 export const modalStyles: Partial<IModalStyles> = {
     scrollableContent: {
         display: 'flex',
         flexDirection: 'column',
-        height: '100%'
-    }
+        height: '100%',
+    },
 }
 export const useCloseButtonStyles = makeStyles(theme => ({
     root: {

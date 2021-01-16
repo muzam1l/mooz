@@ -1,6 +1,11 @@
 import { useCallback, useState } from 'react'
 import { useRecoilState, useSetRecoilState } from 'recoil'
-import { audioDevicesState, displayStreamState, userStreamState, videoDevicesState } from '../atoms'
+import {
+    audioDevicesState,
+    displayStreamState,
+    userStreamState,
+    videoDevicesState,
+} from '../../atoms'
 
 interface UserMediaReturn {
     currentCameraId: string | null
@@ -17,6 +22,9 @@ export const useUserMedia = (): UserMediaReturn => {
     const setVideoDevices = useSetRecoilState(videoDevicesState)
 
     const updateDeviceList = useCallback(async () => {
+        if (!navigator.mediaDevices.ondevicechange) {
+            navigator.mediaDevices.ondevicechange = updateDeviceList
+        }
         const devices = await navigator.mediaDevices.enumerateDevices()
 
         const audio = devices.filter(device => device.kind === 'audioinput')
@@ -51,40 +59,72 @@ export const useUserMedia = (): UserMediaReturn => {
                 } else if (device?.kind === 'videoinput') {
                     config.audio = false
                 }
+
                 const stream = await navigator.mediaDevices.getUserMedia(config)
-                const audioDeviceId = stream.getAudioTracks()[0]?.getSettings?.()?.deviceId
-                const videoDeviceId = stream.getVideoTracks()[0]?.getSettings?.()?.deviceId
+
+                // extra step just to ensure single audio/video track is present
+                const audioTracks = stream.getAudioTracks()
+                const videoTracks = stream.getVideoTracks()
+                if (audioTracks.length > 0) {
+                    audioTracks.forEach((t, i) => {
+                        if (i > 0) {
+                            t.stop()
+                            stream.removeTrack(t)
+                        }
+                    })
+                }
+                if (videoTracks.length > 0) {
+                    videoTracks.forEach((t, i) => {
+                        if (i > 0) {
+                            t.stop()
+                            stream.removeTrack(t)
+                        }
+                    })
+                }
+
+                // set device ids for ui
+                const audioDeviceId = audioTracks[0]?.getSettings?.()?.deviceId
+                const videoDeviceId = videoTracks[0]?.getSettings?.()?.deviceId
                 if (audioDeviceId) {
                     setCurrentMicId(audioDeviceId)
                 }
                 if (videoDeviceId) {
                     setCurrentCameraId(videoDeviceId)
                 }
-                
+
                 if (!userStream) {
-                    // save new stream
+                    // save new stream as it is
                     setUserStream(stream)
                 } else {
-                    // add new tracks to the stream
-                    const audioStream = stream.getAudioTracks()[0]
-                    const videoStream = stream.getVideoTracks()[0]
-                    // remove old streams and add new one
-                    if (audioStream) {
+                    const audioTrack = stream.getAudioTracks()[0]
+                    const videoTrack = stream.getVideoTracks()[0]
+                    if (audioTrack) {
+                        // remove prev audio track
                         userStream.getAudioTracks().forEach(t => {
                             t.stop()
                             userStream.removeTrack(t)
                         })
+                        // add prev video track, if any, to stream
+                        const prevVideo = userStream.getVideoTracks()[0]
+                        if (prevVideo) {
+                            stream.addTrack(prevVideo)
+                        }
                     }
-                    if (videoStream) {
+                    if (videoTrack) {
+                        // remove prev video track
                         userStream.getVideoTracks().forEach(t => {
                             t.stop()
                             userStream.removeTrack(t)
                         })
+                        // add prev audio track, if any, to stream
+                        const prevAudio = userStream.getAudioTracks()[0]
+                        if (prevAudio) {
+                            stream.addTrack(prevAudio)
+                        }
                     }
-
-                    stream.getTracks().forEach(t => userStream.addTrack(t))
+                    // save new stream
+                    setUserStream(stream)
                 }
-                console.log(userStream?.getTracks())
                 updateDeviceList()
             } catch (error) {
                 // TODO handle errors in UI
@@ -96,21 +136,32 @@ export const useUserMedia = (): UserMediaReturn => {
 
     const stop = useCallback(
         async (kind: 'audioinput' | 'videoinput') => {
+            if (!userStream) return
+
             if (kind === 'audioinput') {
-                userStream?.getAudioTracks().forEach(t => {
+                userStream.getAudioTracks().forEach(t => {
                     t.stop()
                     userStream.removeTrack(t)
                 })
                 setCurrentMicId(null)
             } else if (kind === 'videoinput') {
-                setCurrentCameraId(null)
-                userStream?.getVideoTracks().forEach(t => {
+                userStream.getVideoTracks().forEach(t => {
                     t.stop()
                     userStream.removeTrack(t)
                 })
+                setCurrentCameraId(null)
             }
+
             if (userStream?.getTracks().length === 0) {
                 setUserStream(null)
+            } else {
+                // just to trigger rerender od whatever depends on this stream (coz listeners are not working)
+                const stream = userStream.clone()
+                userStream.getTracks().forEach(t => {
+                    t.stop()
+                    userStream.removeTrack(t)
+                })
+                setUserStream(stream)
             }
         },
         [userStream, setUserStream, setCurrentCameraId, setCurrentMicId],

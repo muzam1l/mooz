@@ -3,10 +3,10 @@ import type { ICommandBarItemProps, IButtonProps } from '@fluentui/react'
 import { FunctionComponent } from 'react'
 import { useRecoilValue } from 'recoil'
 import { audioDevicesState, videoDevicesState } from '../../atoms'
-import { useDisplayMedia, useUserMedia } from '../use-streams'
+import { useDisplayMedia, useUserMedia } from '../../utils/hooks/use-streams'
 import { LeaveButtonStyles, buttonStyles, containerStyles, lightOption, darkOption } from './styles'
-import { darkPaletteAlt, lightPaletteAlt } from '../../utils/themes'
-import { useTheme as useThemeType, useSetTheme } from '../../utils/theme-context'
+import { darkPaletteAlt, lightPaletteAlt } from '../../utils/theme/themes'
+import { useTheme as useThemeType, useSetTheme } from '../../utils/theme/theme-context'
 
 interface MyCommandBarProps {
     onClickPeople?: () => void
