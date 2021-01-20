@@ -2,11 +2,17 @@ import { CommandBar, DefaultButton, ThemeProvider, useTheme } from '@fluentui/re
 import type { ICommandBarItemProps, IButtonProps } from '@fluentui/react'
 import { FunctionComponent } from 'react'
 import { useRecoilValue } from 'recoil'
-import { audioDevicesState, videoDevicesState } from '../../atoms'
+import {
+    audioDevicesState,
+    videoDevicesState,
+    currentCameraIdState,
+    currentMicIdState,
+} from '../../atoms'
 import { useDisplayMedia, useUserMedia } from '../../utils/hooks/use-streams'
 import { LeaveButtonStyles, buttonStyles, containerStyles, lightOption, darkOption } from './styles'
 import { darkPaletteAlt, lightPaletteAlt } from '../../utils/theme/themes'
 import { useTheme as useThemeType, useSetTheme } from '../../utils/theme/theme-context'
+import useAbort from '../../utils/hooks/use-abort'
 
 interface MyCommandBarProps {
     onClickPeople?: () => void
@@ -18,10 +24,14 @@ const MyCommandBar: FunctionComponent<MyCommandBarProps> = ({ onClickPeople, onC
     const themeType = useThemeType()
     const setTheme = useSetTheme()
 
+    const currentMicId = useRecoilValue(currentMicIdState)
+    const currentCameraId = useRecoilValue(currentCameraIdState)
     const audioDevices = useRecoilValue(audioDevicesState)
     const videoDevices = useRecoilValue(videoDevicesState)
     const { displayMediaStatus, startDisplayMedia, stopDisplayMedia } = useDisplayMedia()
-    const { currentMicId, currentCameraId, startUserMedia, stopUserMedia } = useUserMedia()
+    const { startUserMedia, stopUserMedia } = useUserMedia()
+
+    const onAbort = useAbort()
 
     const iconMuted = {
         color: theme.palette.neutralDark,
@@ -178,8 +188,8 @@ const MyCommandBar: FunctionComponent<MyCommandBarProps> = ({ onClickPeople, onC
     const farItems: ICommandBarItemProps[] = [
         {
             // eslint-disable-next-line
-            commandBarButtonAs: ({ text, key }) => (
-                <DefaultButton text={text} key={key} styles={LeaveButtonStyles} />
+            commandBarButtonAs: ({ text, key, onClick }) => (
+                <DefaultButton onClick={onAbort} text={text} key={key} styles={LeaveButtonStyles} />
             ),
             key: 'leave',
             text: 'Leave',

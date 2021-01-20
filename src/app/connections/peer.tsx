@@ -1,25 +1,32 @@
-import { useCallback, useEffect, useRef } from 'react'
+import { FunctionComponent, useCallback, useEffect, useRef } from 'react'
 import { useRecoilState, useRecoilValue } from 'recoil'
 import Peer from 'simple-peer'
-import { userStreamState, remoteStreamsState, socketState } from '../../atoms'
+import { remoteStreamsState, socketState, userStreamState } from '../../atoms'
 
 interface Message {
+    from: string
     signal?: any
 }
 
-const usePeerConnection = (opts?: Peer.Options): Peer.Instance => {
+interface PeerProps extends Peer.Options {
+    /* socket id of remote connection to connect to */
+    partner: string
+}
+
+const PeerComponent: FunctionComponent<PeerProps> = props => {
+    const { partner, ...opts } = props
     const peerRef = useRef(new Peer(opts))
 
     const [remoteStreams, setRemoteStreams] = useRecoilState(remoteStreamsState)
     const remoteStreamRef = useRef(new MediaStream())
-
     const userStream = useRecoilValue(userStreamState)
+
     const socket = useRecoilValue(socketState)
 
-    const addStream = useCallback(
+    const onRemoteStream = useCallback(
         (stream: MediaStream) => {
+            console.log('onStream', stream.getTracks())
             const remoteStream = remoteStreamRef.current
-            console.log('Got tracks', stream.getTracks())
             // remove prev tracks
             remoteStream.getTracks().forEach(t => {
                 t.stop()
@@ -29,38 +36,26 @@ const usePeerConnection = (opts?: Peer.Options): Peer.Instance => {
             // add new tracks
             stream.getTracks().forEach(t => remoteStream.addTrack(t))
 
-            console.log('Remote stream ref is', remoteStream.getTracks())
             // save if not already
-            const present = remoteStreams.find(s => s.id === remoteStream.id)
+            const present = remoteStreams.find(s => s.remoteSocketId === partner)
             if (!present) {
-                setRemoteStreams([...remoteStreams, remoteStream])
+                setRemoteStreams([...remoteStreams, {
+                    remoteSocketId: partner,
+                    stream: remoteStream
+                }])
             }
         },
-        [setRemoteStreams, remoteStreams],
+        [setRemoteStreams, remoteStreams, partner],
     )
 
+
     useEffect(() => {
         const peer = peerRef.current
-
-        peer.on('stream', addStream)
-        peer.on('track', console.log)
-
-        return () => {
-            peer.off('stream', addStream)
-        }
-    }, [addStream])
-
-    // static event listeners
-    useEffect(() => {
-        const peer = peerRef.current
-
-        /*
-         these callback functions dont need to be wrapped in useCallback
-         as they are not supposed to change because peer instance is not supposed to change too
-        */
+        const onDataRecieved = (data: any) => alert(data)
+        const onTrack = (track: any) => console.log('Got track', track)
         const onMessageRecieved = (msg: Message) => {
-            const { signal } = msg
-            if (signal) {
+            const { signal, from } = msg
+            if (signal && from === partner) {
                 try {
                     peer.signal(signal)
                 } catch (err) {
@@ -70,26 +65,32 @@ const usePeerConnection = (opts?: Peer.Options): Peer.Instance => {
         }
         const onConnected = () => {
             console.log('Conneted')
-            // peer.send('Hey peer, how are you doing?')
         }
         const onLocalSignal = (signal: any) => {
-            socket.send({ signal })
+            socket.send({
+                to: partner,
+                signal,
+            })
         }
 
+        peer.on('stream', onRemoteStream)
+        peer.on('track', onTrack)
         peer.on('signal', onLocalSignal)
-        // peer.on('data', onDataRecieved)
+        peer.on('data', onDataRecieved)
         peer.on('connect', onConnected)
 
         socket.on('message', onMessageRecieved)
 
         return () => {
+            peer.off('stream', onRemoteStream)
+            peer.off('track', onTrack)
             peer.off('signal', onLocalSignal)
             peer.off('connect', onConnected)
-            // peer.off('data', onDataRecieved)
+            peer.off('data', onDataRecieved)
 
             socket.off('message', onMessageRecieved)
         }
-    }, [])
+    }, [onRemoteStream, socket, partner])
 
     useEffect(() => {
         const peer = peerRef.current
@@ -111,7 +112,30 @@ const usePeerConnection = (opts?: Peer.Options): Peer.Instance => {
         }
     }, [userStream])
 
-    return peerRef.current
+    useEffect(() => {
+        ;(window as any).peer = peerRef.current
+    }, [])
+
+    // send proposal to partner to join
+    useEffect(() => {
+        if (!opts.initiator) {
+            socket.send({
+                to: partner,
+                proposal: true,
+            })
+        }
+    }, []) // eslint-disable-line
+
+    // destroy peer and remote stream when component exits
+    useEffect(() => () => {
+        peerRef.current.destroy()
+        remoteStreamRef.current.getTracks().forEach(t => {
+            t.stop()
+            remoteStreamRef.current.removeTrack(t)
+        })
+    }, [])
+
+    return null
 }
 
-export default usePeerConnection
+export default PeerComponent

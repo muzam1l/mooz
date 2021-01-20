@@ -14,7 +14,7 @@ export const audioDevicesState = atom<MediaDeviceInfo[]>({
     default: [],
 })
 
-export const currentAudioDeviceState = atom<MediaDeviceInfo | null>({
+export const currentMicIdState = atom<string | null>({
     key: 'currentAudioDevice',
     default: null,
 })
@@ -24,7 +24,7 @@ export const videoDevicesState = atom<MediaDeviceInfo[]>({
     default: [],
 })
 
-export const currentVideoDeviceState = atom<MediaDeviceInfo | null>({
+export const currentCameraIdState = atom<string | null>({
     key: 'currentVideoDevice',
     default: null,
 })

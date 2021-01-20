@@ -22,7 +22,7 @@ const VideoBoxes: FunctionComponent = () => {
 
     const userMedia = useRecoilValue(userStreamState)
     const displayMedia = useRecoilValue(displayStreamState)
-    const remoteStreams = useRecoilValue(remoteStreamsState)
+    const remoteStreams = useRecoilValue(remoteStreamsState).map(s => s.stream)
 
     let count = remoteStreams.length
     if (userMedia) count += 1

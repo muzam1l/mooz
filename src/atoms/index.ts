@@ -2,8 +2,7 @@ import { useEffect } from 'react'
 import { useRecoilSnapshot } from 'recoil'
 
 export * from './local-streams'
-export * from './remote-streams'
-export * from './socket'
+export * from './connections'
 
 /* eslint-disable */
 export function DebugObserver(): null {

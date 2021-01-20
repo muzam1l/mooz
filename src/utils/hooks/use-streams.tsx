@@ -5,18 +5,19 @@ import {
     displayStreamState,
     userStreamState,
     videoDevicesState,
+    currentCameraIdState,
+    currentMicIdState
 } from '../../atoms'
 
 interface UserMediaReturn {
-    currentCameraId: string | null
-    currentMicId: string | null
     startUserMedia: (device?: MediaDeviceInfo) => Promise<void>
     stopUserMedia: (kind: 'videoinput' | 'audioinput') => Promise<void>
 }
 
 export const useUserMedia = (): UserMediaReturn => {
-    const [currentCameraId, setCurrentCameraId] = useState<string | null>(null)
-    const [currentMicId, setCurrentMicId] = useState<string | null>(null)
+    const setCurrentCameraId = useSetRecoilState(currentCameraIdState)
+    const setCurrentMicId = useSetRecoilState(currentMicIdState)
+    
     const [userStream, setUserStream] = useRecoilState(userStreamState)
     const setAudioDevices = useSetRecoilState(audioDevicesState)
     const setVideoDevices = useSetRecoilState(videoDevicesState)
@@ -131,22 +132,26 @@ export const useUserMedia = (): UserMediaReturn => {
                 console.error('Error accessing media devices.', error)
             }
         },
-        [setUserStream, userStream, updateDeviceList],
+        [setUserStream, userStream, updateDeviceList, setCurrentCameraId, setCurrentMicId],
     )
 
     const stop = useCallback(
         async (kind: 'audioinput' | 'videoinput') => {
             if (!userStream) return
 
+            const toStop: MediaStreamTrack[] = []
+
             if (kind === 'audioinput') {
                 userStream.getAudioTracks().forEach(t => {
-                    t.stop()
+                    // t.stop()
+                    toStop.push(t)
                     userStream.removeTrack(t)
                 })
                 setCurrentMicId(null)
             } else if (kind === 'videoinput') {
                 userStream.getVideoTracks().forEach(t => {
-                    t.stop()
+                    // t.stop()
+                    toStop.push(t)
                     userStream.removeTrack(t)
                 })
                 setCurrentCameraId(null)
@@ -155,21 +160,24 @@ export const useUserMedia = (): UserMediaReturn => {
             if (userStream?.getTracks().length === 0) {
                 setUserStream(null)
             } else {
-                // just to trigger rerender od whatever depends on this stream (coz listeners are not working)
+                // just to trigger rerender of whatever depends on this stream
                 const stream = userStream.clone()
                 userStream.getTracks().forEach(t => {
-                    t.stop()
+                    // t.stop()
+                    toStop.push(t)
                     userStream.removeTrack(t)
                 })
                 setUserStream(stream)
             }
+
+            toStop.forEach(t => [
+                t.stop()
+            ])
         },
         [userStream, setUserStream, setCurrentCameraId, setCurrentMicId],
     )
 
     return {
-        currentCameraId,
-        currentMicId,
         startUserMedia: start,
         stopUserMedia: stop,
     }
