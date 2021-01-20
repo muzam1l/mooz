@@ -42,7 +42,7 @@ const PersonComponent: FunctionComponent<{ item?: Person; index?: number }> = ({
                 <Persona
                     presence={PersonaPresence.online}
                     text={item.name}
-                    secondaryText="In a meeting"
+                    secondaryText="Online"
                     size={PersonaSize.size32}
                 />
                 <IconButton

@@ -59,14 +59,15 @@ const CreateMeeting: FunctionComponent = () => {
                 />
                 <TextField
                     className={mb2}
-                    value={meetingName}
-                    onChange={(_, val) => setMeetingName(val || '')}
-                    placeholder="Meeting name"
-                />
-                <TextField
                     value={personName}
                     onChange={(_, val) => setPersonName(val || '')}
                     placeholder="Your name"
+                    required
+                />
+                <TextField
+                    value={meetingName}
+                    onChange={(_, val) => setMeetingName(val || '')}
+                    placeholder="Meeting name"
                 />
                 <Label style={{ color: theme.palette.red }}>{error}</Label>
                 <Stack.Item>

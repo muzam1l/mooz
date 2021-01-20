@@ -5,10 +5,14 @@ import type { FormEvent, FunctionComponent } from 'react'
 import { mb2, submit } from './styles'
 import { socketState } from '../atoms'
 
-const JoinMeeting: FunctionComponent = () => {
+interface JoinProps {
+    defaultId?: string
+}
+
+const JoinMeeting: FunctionComponent<JoinProps> = ({ defaultId }) => {
     const theme = useTheme()
     const socket = useRecoilValue(socketState)
-    const [link, setLink] = useState('')
+    const [link, setLink] = useState(defaultId)
     const [name, setName] = useState('')
     const [disabled, setDisabled] = useState(false)
     const [error, setError] = useState<string | null>(null)
@@ -52,6 +56,7 @@ const JoinMeeting: FunctionComponent = () => {
                         value={name}
                         onChange={(_, val) => setName(val || '')}
                         placeholder="Your name"
+                        required
                     />
                 </Stack.Item>
                 <Label style={{ color: theme.palette.red }}>{error}</Label>

@@ -20,7 +20,7 @@ const Eagle: FunctionComponent = () => {
     const socket = useRecoilValue(socketState)
     const [room, setRoom] = useRecoilState(roomState)
     const [loading, setLoading] = useState(false)
-
+    
     useEffect(() => {
         socket.on('room_joined', (r: Room) => {
             setRoom(r)

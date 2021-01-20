@@ -18,7 +18,15 @@ const pivotStyles: Partial<IPivotStyles> = {
 }
 
 const Landing: FunctionComponent = () => {
-    const one = 1
+    let defaultKey = 'create'
+    let defaultId: string | undefined
+    const path = window.location.pathname
+    const REGEX = /^\/room\/(?<id>[0-9a-zA-Z-_]+)/
+    const match = path.match(REGEX)
+    if (match) {
+        defaultKey = 'join'
+        defaultId = match.groups?.id
+    }
     return (
         <Stack className={container} horizontalAlign="center">
             <Stack.Item className={containerInner}>
@@ -28,15 +36,16 @@ const Landing: FunctionComponent = () => {
                 <Stack horizontalAlign="center" horizontal wrap>
                     <Stack.Item className={mr4} grow>
                         <Pivot
+                            defaultSelectedKey={defaultKey}
                             className={options}
                             styles={pivotStyles}
                             aria-label="Create or join a meeting"
                         >
-                            <PivotItem headerText="Create new meeting">
+                            <PivotItem itemKey="create" headerText="Create new meeting">
                                 <CreateMeeting />
                             </PivotItem>
-                            <PivotItem headerText="Join a meeting">
-                                <JoinMeeting />
+                            <PivotItem itemKey="join" headerText="Join a meeting">
+                                <JoinMeeting defaultId={defaultId} />
                             </PivotItem>
                         </Pivot>
                     </Stack.Item>

@@ -1,6 +1,6 @@
 import { CommandBar, DefaultButton, ThemeProvider, useTheme } from '@fluentui/react'
 import type { ICommandBarItemProps, IButtonProps } from '@fluentui/react'
-import { FunctionComponent } from 'react'
+import { FunctionComponent, useState } from 'react'
 import { useRecoilValue } from 'recoil'
 import {
     audioDevicesState,
@@ -13,6 +13,7 @@ import { LeaveButtonStyles, buttonStyles, containerStyles, lightOption, darkOpti
 import { darkPaletteAlt, lightPaletteAlt } from '../../utils/theme/themes'
 import { useTheme as useThemeType, useSetTheme } from '../../utils/theme/theme-context'
 import useAbort from '../../utils/hooks/use-abort'
+import InfoCallout from '../../comps/info-callout'
 
 interface MyCommandBarProps {
     onClickPeople?: () => void
@@ -185,6 +186,9 @@ const MyCommandBar: FunctionComponent<MyCommandBarProps> = ({ onClickPeople, onC
             },
         },
     ]
+
+    const [showInfo, setShowInfo] = useState(false)
+
     const farItems: ICommandBarItemProps[] = [
         {
             // eslint-disable-next-line
@@ -196,14 +200,17 @@ const MyCommandBar: FunctionComponent<MyCommandBarProps> = ({ onClickPeople, onC
         },
         {
             buttonStyles,
+            className: 'commandbar-info-button',
             key: 'info',
-            text: 'Info',
+            // text: 'Info',
             // This needs an ariaLabel since it's icon-only
             ariaLabel: 'Info',
             iconOnly: true,
             iconProps: { iconName: 'Info' },
+            onClick: () => setShowInfo(!showInfo),
         },
     ]
+
     const palette = themeType === 'dark' ? darkPaletteAlt : lightPaletteAlt
     return (
         <ThemeProvider theme={{ ...palette }}>
@@ -215,6 +222,12 @@ const MyCommandBar: FunctionComponent<MyCommandBarProps> = ({ onClickPeople, onC
                 farItems={farItems}
                 ariaLabel="Use left and right arrow keys to navigate between commands"
             />
+            {showInfo && (
+                <InfoCallout
+                    onDismiss={() => setShowInfo(false)}
+                    target=".commandbar-info-button"
+                />
+            )}
         </ThemeProvider>
     )
 }
