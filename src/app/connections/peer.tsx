@@ -1,7 +1,7 @@
 import { FunctionComponent, useCallback, useEffect, useRef } from 'react'
 import { useRecoilState, useRecoilValue } from 'recoil'
 import Peer from 'simple-peer'
-import { remoteStreamsState, socketState, userStreamState } from '../../atoms'
+import { preferencesState, remoteStreamsState, socketState, userStreamState } from '../../atoms'
 
 interface Message {
     from: string
@@ -14,6 +14,7 @@ interface PeerProps extends Peer.Options {
 }
 
 const PeerComponent: FunctionComponent<PeerProps> = props => {
+    const preferences = useRecoilValue(preferencesState)
     const { partner, ...opts } = props
     const peerRef = useRef(new Peer(opts))
 
@@ -122,6 +123,7 @@ const PeerComponent: FunctionComponent<PeerProps> = props => {
             socket.send({
                 to: partner,
                 proposal: true,
+                name: preferences.name
             })
         }
     }, []) // eslint-disable-line

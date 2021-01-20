@@ -40,7 +40,6 @@ export const roomState = atom<Room | null>({
 export interface RemoteStream {
     stream: MediaStream
     remoteSocketId: string
-    partnerName?: string
 }
 
 export const remoteStreamsState = atom<RemoteStream[]>({
@@ -51,6 +50,7 @@ export const remoteStreamsState = atom<RemoteStream[]>({
 export interface Connection {
     initiator: boolean
     remoteSocketId: string
+    partnerName?: string
 }
 
 export const connectionsState = atom<Connection[]>({

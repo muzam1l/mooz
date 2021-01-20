@@ -1,16 +1,17 @@
-import { useRecoilValue } from 'recoil'
+import { useRecoilState, useRecoilValue } from 'recoil'
 import { useCallback, useState } from 'react'
 import type { FunctionComponent, FormEvent } from 'react'
 import { Stack, TextField, PrimaryButton, SpinButton, Label, useTheme } from '@fluentui/react'
 import { submit, mb2 } from './styles'
-import { socketState, Room } from '../atoms'
+import { socketState, Room, preferencesState } from '../atoms'
 
 const CreateMeeting: FunctionComponent = () => {
+    const [preferences, setPreferences] = useRecoilState(preferencesState)
     const theme = useTheme()
     const socket = useRecoilValue(socketState)
     const [max, setMax] = useState('2')
     const [meetingName, setMeetingName] = useState('')
-    const [personName, setPersonName] = useState('')
+    const [personName, setPersonName] = useState(preferences.name)
     const [disabled, setDisabled] = useState(false)
     const [error, setError] = useState<string | null>(null)
 
@@ -38,9 +39,10 @@ const CreateMeeting: FunctionComponent = () => {
                 if (isError) {
                     onError()
                 }
+                setPreferences({ name: personName })
             })
         },
-        [disabled, setDisabled, socket, max, meetingName, personName, setError],
+        [disabled, setDisabled, socket, max, meetingName, personName, setError, setPreferences],
     )
 
     return (

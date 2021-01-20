@@ -63,6 +63,12 @@ export const message = mergeStyles({
     height: '100%',
     fontSize: FontSizes.xLarge,
     fontWeight: FontWeights.semilight,
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: '.25em',
+    textAlign: 'center'
 })
 
 export const useModalClassnames = makeStyles(theme => ({

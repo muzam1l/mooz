@@ -18,10 +18,11 @@ const Connections: FunctionComponent = () => {
 
     const onPersonJoined = useCallback(
         (data: { socketId: string; name: string }) => {
-            const { socketId: remoteSocketId } = data
+            const { socketId: remoteSocketId, name } = data
             const connection: Connection = {
                 initiator: false,
                 remoteSocketId,
+                partnerName: name
             }
             // setConnections(connections.concat(connection))
             addConnections([connection])
@@ -30,11 +31,12 @@ const Connections: FunctionComponent = () => {
     )
 
     const onMessage = useCallback(
-        ({ proposal, from }) => {
+        ({ proposal, from, name }) => {
             if (proposal) {
                 const connection: Connection = {
                     initiator: true,
                     remoteSocketId: from,
+                    partnerName: name
                 }
                 // setConnections(connections.concat(connection))
                 addConnections([connection])

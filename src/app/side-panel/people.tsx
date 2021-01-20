@@ -10,18 +10,25 @@ import {
     IconButton,
     ContextualMenu,
     ContextualMenuItemType,
+    DefaultButton,
 } from '@fluentui/react'
+import { useRecoilValue } from 'recoil'
 import type { FunctionComponent } from 'react'
-import { vFluid, searchbox, vScroll } from './styles'
+import { vFluid, searchbox, vScroll, message } from './styles'
+import { Connection, connectionsState } from '../../atoms'
+import InfoCallout from '../../comps/info-callout'
 
-const PersonComponent: FunctionComponent<{ item?: Person; index?: number }> = ({ index, item }) => {
+const PersonComponent: FunctionComponent<{ item?: Connection; index?: number }> = ({
+    index,
+    item,
+}) => {
     const [mouseEvent, setMouseEvent] = useState<MouseEvent | null>(null)
     const theme = useTheme()
-    if (!index || !item) return null
+    if (!item || index === undefined) return null
     return (
         <>
             <Stack
-                key={index}
+                key={item.remoteSocketId}
                 onContextMenu={e => {
                     e.preventDefault()
                     // eslint-disable-next-line
@@ -41,7 +48,7 @@ const PersonComponent: FunctionComponent<{ item?: Person; index?: number }> = ({
             >
                 <Persona
                     presence={PersonaPresence.online}
-                    text={item.name}
+                    text={item.partnerName || `<${item.remoteSocketId}>`}
                     secondaryText="Online"
                     size={PersonaSize.size32}
                 />
@@ -58,7 +65,7 @@ const PersonComponent: FunctionComponent<{ item?: Person; index?: number }> = ({
                     {
                         key: 'header1',
                         itemType: ContextualMenuItemType.Header,
-                        text: item.name,
+                        text: item.partnerName,
                     },
                     {
                         key: 'mute',
@@ -91,89 +98,54 @@ const PersonComponent: FunctionComponent<{ item?: Person; index?: number }> = ({
 }
 
 const PeoplePanel: FunctionComponent = () => {
+    const connections = useRecoilValue(connectionsState)
     const onRenderPerson = useCallback(
-        (item?: Person, index?: number) => <PersonComponent item={item} index={index} />,
+        (item?: Connection, index?: number) => <PersonComponent item={item} index={index} />,
         [],
     )
+    const [showInfo, setShowInfo] = useState(false)
     return (
         <Stack verticalAlign="center" className={vFluid}>
-            <SearchBox
-                underlined
-                placeholder="Search people..."
-                className={searchbox}
-                ariaLabel="Search for people in this meeting"
-            />
-            {/* eslint-disable-next-line */}
-            <List className={vScroll} items={people} onRenderCell={onRenderPerson} />
+            {!connections.length ? (
+                <div className={message}>
+                    <span>You are currently alone right now, invite some people to join</span>
+                    <DefaultButton
+                        onClick={() => setShowInfo(!showInfo)}
+                        text="Info"
+                        className="info-button-in-person-list"
+                        style={{ marginTop: '.5em' }}
+                    />
+                </div>
+            ) : (
+                <Stack className={vFluid} horizontalAlign="center">
+                    {/* <SearchBox
+                        underlined
+                        placeholder="Search people..."
+                        className={searchbox}
+                        ariaLabel="Search for people in this meeting"
+                    /> */}
+                    <DefaultButton
+                        onClick={() => setShowInfo(!showInfo)}
+                        text="Info"
+                        className="info-button-in-person-list"
+                        style={{ marginBottom: '.5em' }}
+                    />
+                    <List
+                        style={{ width: '100%' }}
+                        className={vScroll}
+                        items={connections}
+                        onRenderCell={onRenderPerson}
+                    />
+                </Stack>
+            )}
+            {showInfo && (
+                <InfoCallout
+                    onDismiss={() => setShowInfo(false)}
+                    target=".info-button-in-person-list"
+                />
+            )}
         </Stack>
     )
 }
 
 export default PeoplePanel
-
-interface Person {
-    name: string
-}
-
-const people: Person[] = [
-    {
-        name: 'Muzamil sofi',
-    },
-    {
-        name: 'Not muzamil',
-    },
-    {
-        name: 'Muzamil sofi',
-    },
-    {
-        name: 'Not muzamil',
-    },
-    {
-        name: 'Muzamil sofi',
-    },
-    {
-        name: 'Not muzamil',
-    },
-    {
-        name: 'Muzamil sofi',
-    },
-    {
-        name: 'Not muzamil',
-    },
-    {
-        name: 'Muzamil sofi',
-    },
-    {
-        name: 'Not muzamil',
-    },
-    {
-        name: 'Muzamil sofi',
-    },
-    {
-        name: 'Not muzamil',
-    },
-    {
-        name: 'Muzamil sofi',
-    },
-    {
-        name: 'Not muzamil',
-    },
-    {
-        name: 'Muzamil sofi',
-    },
-    {
-        name: 'Not muzamil',
-    },
-    {
-        name: 'Muzamil sofi',
-    },
-    {
-        name: 'Not muzamil',
-    },
-    {
-        name: 'Muzamil sofi',
-    },
-    {
-        name: 'Not muzamil',
-    },
-]

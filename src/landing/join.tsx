@@ -1,9 +1,9 @@
 import { useState, useCallback } from 'react'
-import { useRecoilValue } from 'recoil'
+import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil'
 import { Stack, TextField, PrimaryButton, useTheme, Label } from '@fluentui/react'
 import type { FormEvent, FunctionComponent } from 'react'
 import { mb2, submit } from './styles'
-import { socketState } from '../atoms'
+import { preferencesState, socketState } from '../atoms'
 
 interface JoinProps {
     defaultId?: string
@@ -11,9 +11,10 @@ interface JoinProps {
 
 const JoinMeeting: FunctionComponent<JoinProps> = ({ defaultId }) => {
     const theme = useTheme()
+    const [preferences, setPreferences] = useRecoilState(preferencesState)
     const socket = useRecoilValue(socketState)
     const [link, setLink] = useState(defaultId)
-    const [name, setName] = useState('')
+    const [name, setName] = useState(preferences.name)
     const [disabled, setDisabled] = useState(false)
     const [error, setError] = useState<string | null>(null)
 
@@ -34,9 +35,10 @@ const JoinMeeting: FunctionComponent<JoinProps> = ({ defaultId }) => {
                 if (isError) {
                     onError()
                 }
+                setPreferences({ name })
             })
         },
-        [disabled, setDisabled, socket, link, name, setError],
+        [disabled, setDisabled, socket, link, name, setError, setPreferences],
     )
 
     return (

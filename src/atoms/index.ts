@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { useRecoilSnapshot } from 'recoil'
 
-export * from './local-streams'
+export * from './local'
 export * from './connections'
 
 /* eslint-disable */
