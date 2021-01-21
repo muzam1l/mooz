@@ -74,7 +74,6 @@ const ChatPanel: FunctionComponent<ChatPanelProps> = ({ setPanel }) => {
                     moveMenuItemText: 'Move',
                     closeMenuItemText: 'Close',
                     menu: ContextualMenu,
-                    keepInBounds: true,
                     dragHandleSelector: '#chat-modal-header',
                 }}
             >

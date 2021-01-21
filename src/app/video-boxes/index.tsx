@@ -8,11 +8,15 @@ import VideoBox from '../../comps/video'
 const container = mergeStyles({
     height: 'calc(100vh - 40px)',
     display: 'flex',
+    overflowY: 'auto',
+})
+const containerInner = mergeStyles({
+    display: 'flex',
+    margin: 'auto',
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
     flexWrap: 'wrap',
-    overflowY: 'auto',
 })
 
 const AR = 4 / 3
@@ -31,26 +35,24 @@ const VideoBoxes: FunctionComponent = () => {
 
     return (
         <div className={container}>
-            {[userMedia, displayMedia, ...remoteStreams].filter(Boolean).map(
-                stream =>
-                    stream && (
-                        <Stack
-                            key={stream.id}
-                            style={{
-                                // maxHeight: '90vh',
-                                // maxWidth: `calc( 90vh * ${AR} )`,
-                                maxHeight: y,
-                                maxWidth: x,
-                                height: '100%',
-                                width: '100%',
-                                backgroundColor: theme.palette.neutralLight,
-                                border: `1px solid ${theme.palette.white}`,
-                            }}
-                        >
-                            <VideoBox muted={stream.id === userMedia?.id} stream={stream} />
-                        </Stack>
-                    ),
-            )}
+            <div className={containerInner}>
+                {[userMedia, displayMedia, ...remoteStreams].filter(Boolean).map(
+                    stream =>
+                        stream && (
+                            <Stack
+                                key={stream.id}
+                                style={{
+                                    height: y,
+                                    maxWidth: x,
+                                    backgroundColor: theme.palette.neutralLight,
+                                    border: `1px solid ${theme.palette.white}`,
+                                }}
+                            >
+                                <VideoBox muted={stream.id === userMedia?.id} stream={stream} />
+                            </Stack>
+                        ),
+                )}
+            </div>
         </div>
     )
 }
