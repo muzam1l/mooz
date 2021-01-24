@@ -13,16 +13,46 @@ interface PeerProps extends Peer.Options {
     partner: string
 }
 
+/* eslint-disable */
+function updateBandwidthRestriction(sdp: string, bandwidth: number) {
+    let modifier = 'AS'
+    // if (adapter.browserDetails.browser === 'firefox') {
+    if (navigator.userAgent.indexOf('Firefox') != -1) {
+        bandwidth = (bandwidth >>> 0) * 1000
+        modifier = 'TIAS'
+    }
+    if (sdp.indexOf('b=' + modifier + ':') === -1) {
+        // insert b= after c= line.
+        sdp = sdp.replace(/c=IN (.*)\r\n/, 'c=IN $1\r\nb=' + modifier + ':' + bandwidth + '\r\n')
+    } else {
+        sdp = sdp.replace(
+            new RegExp('b=' + modifier + ':.*\r\n'),
+            'b=' + modifier + ':' + bandwidth + '\r\n',
+        )
+    }
+    return sdp
+}
+/* eslint-enable */
+
+const createSdpTransform = (bitrate: number) => (sdp: string) =>
+    updateBandwidthRestriction(sdp, bitrate)
+
 const PeerComponent: FunctionComponent<PeerProps> = props => {
     const preferences = useRecoilValue(preferencesState)
     const { partner, ...opts } = props
-    const peerRef = useRef(new Peer(opts))
-
     const [remoteStreams, setRemoteStreams] = useRecoilState(remoteStreamsState)
     const remoteStreamRef = useRef(new MediaStream())
     const userStream = useRecoilValue(userStreamState)
 
     const socket = useRecoilValue(socketState)
+
+    const peerRef = useRef<Peer.Instance>()
+    if (!peerRef.current) {
+        peerRef.current = new Peer({
+            sdpTransform: createSdpTransform(500) as any, // 250k max bitrate
+            ...opts
+        })
+    }
 
     const onRemoteStream = useCallback(
         (stream: MediaStream) => {
@@ -53,7 +83,7 @@ const PeerComponent: FunctionComponent<PeerProps> = props => {
     )
 
     useEffect(() => {
-        const peer = peerRef.current
+        const peer = peerRef.current as Peer.Instance
         // const onDataRecieved = (data: any) => alert(data)
         // const onTrack = (track: any) => console.log('Got track', track)
         const onMessageRecieved = (msg: Message) => {
@@ -96,7 +126,7 @@ const PeerComponent: FunctionComponent<PeerProps> = props => {
     }, [onRemoteStream, socket, partner])
 
     useEffect(() => {
-        const peer = peerRef.current
+        const peer = peerRef.current as Peer.Instance
         try {
             if (userStream) {
                 peer.addStream(userStream)
@@ -115,10 +145,6 @@ const PeerComponent: FunctionComponent<PeerProps> = props => {
         }
     }, [userStream])
 
-    useEffect(() => {
-        ;(window as any).peer = peerRef.current
-    }, [])
-
     // send proposal to partner to join
     useEffect(() => {
         if (!opts.initiator) {
@@ -133,7 +159,7 @@ const PeerComponent: FunctionComponent<PeerProps> = props => {
     // destroy peer and remote stream when component exits
     useEffect(
         () => () => {
-            peerRef.current.destroy()
+            peerRef.current?.destroy()
             remoteStreamRef.current.getTracks().forEach(t => {
                 t.stop()
                 remoteStreamRef.current.removeTrack(t)

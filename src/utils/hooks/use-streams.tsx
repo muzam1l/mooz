@@ -39,7 +39,7 @@ export const useUserMedia = (): UserMediaReturn => {
         async (device?: MediaDeviceInfo) => {
             try {
                 const aspectRatio = 4 / 3
-                const height = 720
+                const height = 480
                 const config: MediaStreamConstraints = {
                     audio: {
                         deviceId: device?.deviceId,

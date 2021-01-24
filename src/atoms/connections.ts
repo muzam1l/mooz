@@ -2,7 +2,7 @@ import { atom, DefaultValue, selector } from 'recoil'
 import { Socket, io } from 'socket.io-client'
 
 export const createSocket = (): Socket => {
-    const socket = io({ port: process.env.PORT || '5000' })
+    const socket = io()
 
     socket.on('connect', () => {
         console.log('Socket connected', socket.id)

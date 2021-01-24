@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { getVideoBoxSize } from '../helpers'
 
 const TOP_BAR_HEIGHT = 40
+
 const useVideoSize = (N = 1, AR = 1): { x: number; y: number } => {
     const [size, setSize] = useState<{ X?: number; Y?: number }>({})
     const [isMobile, setIsMobile] = useState(window.matchMedia('(max-width: 480px)').matches)
@@ -40,10 +41,10 @@ const useVideoSize = (N = 1, AR = 1): { x: number; y: number } => {
     }, [isMobile, setSize])
 
     const { X = 500, Y = 800 } = size // bad defaults
-    let { x, y } = getVideoBoxSize(X, Y, N, AR)
+    const { x, y } = getVideoBoxSize(X, Y, N, AR)
 
-    x = isMobile ? X : x
-    y = isMobile ? X / AR : y
+    // x = isMobile ? X : x
+    // y = isMobile ? X / AR : y
 
     return { x, y }
 }
