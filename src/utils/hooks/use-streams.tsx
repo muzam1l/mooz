@@ -6,7 +6,7 @@ import {
     userStreamState,
     videoDevicesState,
     currentCameraIdState,
-    currentMicIdState
+    currentMicIdState,
 } from '../../atoms'
 
 interface UserMediaReturn {
@@ -17,7 +17,7 @@ interface UserMediaReturn {
 export const useUserMedia = (): UserMediaReturn => {
     const setCurrentCameraId = useSetRecoilState(currentCameraIdState)
     const setCurrentMicId = useSetRecoilState(currentMicIdState)
-    
+
     const [userStream, setUserStream] = useRecoilState(userStreamState)
     const setAudioDevices = useSetRecoilState(audioDevicesState)
     const setVideoDevices = useSetRecoilState(videoDevicesState)
@@ -170,9 +170,7 @@ export const useUserMedia = (): UserMediaReturn => {
                 setUserStream(stream)
             }
 
-            toStop.forEach(t => [
-                t.stop()
-            ])
+            toStop.forEach(t => [t.stop()])
         },
         [userStream, setUserStream, setCurrentCameraId, setCurrentMicId],
     )

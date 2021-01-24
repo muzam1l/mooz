@@ -26,6 +26,7 @@ export const mediaContainer = mergeStyles({
 export const userMediaContainer = mergeStyles(mediaContainer, {
     right: 0,
 })
+
 export const displayMediaContainer = mergeStyles(mediaContainer, {
     right: 200,
 })

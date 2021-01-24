@@ -47,5 +47,5 @@ const fadeIn = keyframes({
 
 export const placeholder = mergeStyles({
     minHeight: '150px',
-    animation: `${fadeIn} .75s ease`
+    animation: `${fadeIn} .75s ease`,
 })

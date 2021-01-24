@@ -22,7 +22,7 @@ const Connections: FunctionComponent = () => {
             const connection: Connection = {
                 initiator: false,
                 remoteSocketId,
-                partnerName: name
+                partnerName: name,
             }
             // setConnections(connections.concat(connection))
             addConnections([connection])
@@ -36,7 +36,7 @@ const Connections: FunctionComponent = () => {
                 const connection: Connection = {
                     initiator: true,
                     remoteSocketId: from,
-                    partnerName: name
+                    partnerName: name,
                 }
                 // setConnections(connections.concat(connection))
                 addConnections([connection])

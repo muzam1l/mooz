@@ -2,11 +2,20 @@ import { createServer } from 'http'
 import { Server, Socket } from 'socket.io'
 import { nanoid } from 'nanoid'
 import NodeCache from 'node-cache'
+import serveStatic from 'serve-static'
 
-const SERVER_OPTIONS = { cors: { origin: '*' } }
+const serve = serveStatic('build')
 
-const httpServer = createServer()
-const io = new Server(httpServer, SERVER_OPTIONS)
+const IO_OPTIONS = { cors: { origin: '*' } }
+
+const httpServer = createServer((req, res) => {
+    const nxt = () => {
+        req.url = '/'
+        serve(req, res, nxt)
+    }
+    serve(req, res, nxt)
+})
+const io = new Server(httpServer, IO_OPTIONS)
 
 const roomsCache = new NodeCache({
     /*
@@ -96,7 +105,7 @@ io.on('connection', (socket: Socket) => {
         const { to, ...msg } = message
         socket.to(to).send({
             from: socket.id,
-            ...msg
+            ...msg,
         })
     })
 
@@ -141,6 +150,6 @@ function getRoomFromLink(link: string): Room {
     return roomsCache.get(id) as Room
 }
 
-httpServer.listen(5000, () => {
-    console.log('listening on port', 5000)
+httpServer.listen(process.env.PORT || 5000, () => {
+    console.log('listening on port', process.env.PORT || 5000)
 })

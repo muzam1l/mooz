@@ -68,7 +68,7 @@ export const message = mergeStyles({
     alignItems: 'center',
     justifyContent: 'center',
     padding: '.25em',
-    textAlign: 'center'
+    textAlign: 'center',
 })
 
 export const useModalClassnames = makeStyles(theme => ({

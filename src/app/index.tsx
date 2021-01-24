@@ -14,7 +14,8 @@ const App: FunctionComponent = () => {
     const onClickPeople = () => (panel !== 'people' ? setPanel('people') : setPanel(''))
 
     useEffect(() => {
-        document.title = room?.name || room?.created_by && `Meeting by ${room?.created_by}` || 'A Mooz meeting'
+        document.title =
+            room?.name || (room?.created_by && `Meeting by ${room?.created_by}`) || 'A Mooz meeting'
         return () => {
             document.title = 'Mooz'
         }

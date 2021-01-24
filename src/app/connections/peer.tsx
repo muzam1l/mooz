@@ -40,20 +40,22 @@ const PeerComponent: FunctionComponent<PeerProps> = props => {
             // save if not already
             const present = remoteStreams.find(s => s.remoteSocketId === partner)
             if (!present) {
-                setRemoteStreams([...remoteStreams, {
-                    remoteSocketId: partner,
-                    stream: remoteStream
-                }])
+                setRemoteStreams([
+                    ...remoteStreams,
+                    {
+                        remoteSocketId: partner,
+                        stream: remoteStream,
+                    },
+                ])
             }
         },
         [setRemoteStreams, remoteStreams, partner],
     )
 
-
     useEffect(() => {
         const peer = peerRef.current
-        const onDataRecieved = (data: any) => alert(data)
-        const onTrack = (track: any) => console.log('Got track', track)
+        // const onDataRecieved = (data: any) => alert(data)
+        // const onTrack = (track: any) => console.log('Got track', track)
         const onMessageRecieved = (msg: Message) => {
             const { signal, from } = msg
             if (signal && from === partner) {
@@ -75,19 +77,19 @@ const PeerComponent: FunctionComponent<PeerProps> = props => {
         }
 
         peer.on('stream', onRemoteStream)
-        peer.on('track', onTrack)
+        // peer.on('track', onTrack)
         peer.on('signal', onLocalSignal)
-        peer.on('data', onDataRecieved)
+        // peer.on('data', onDataRecieved)
         peer.on('connect', onConnected)
 
         socket.on('message', onMessageRecieved)
 
         return () => {
             peer.off('stream', onRemoteStream)
-            peer.off('track', onTrack)
+            // peer.off('track', onTrack)
             peer.off('signal', onLocalSignal)
             peer.off('connect', onConnected)
-            peer.off('data', onDataRecieved)
+            // peer.off('data', onDataRecieved)
 
             socket.off('message', onMessageRecieved)
         }
@@ -123,19 +125,22 @@ const PeerComponent: FunctionComponent<PeerProps> = props => {
             socket.send({
                 to: partner,
                 proposal: true,
-                name: preferences.name
+                name: preferences.name,
             })
         }
     }, []) // eslint-disable-line
 
     // destroy peer and remote stream when component exits
-    useEffect(() => () => {
-        peerRef.current.destroy()
-        remoteStreamRef.current.getTracks().forEach(t => {
-            t.stop()
-            remoteStreamRef.current.removeTrack(t)
-        })
-    }, [])
+    useEffect(
+        () => () => {
+            peerRef.current.destroy()
+            remoteStreamRef.current.getTracks().forEach(t => {
+                t.stop()
+                remoteStreamRef.current.removeTrack(t)
+            })
+        },
+        [],
+    )
 
     return null
 }

@@ -1,7 +1,13 @@
 import { FunctionComponent } from 'react'
 import { Stack, Modal, ContextualMenu } from '@fluentui/react'
 import { useRecoilValue } from 'recoil'
-import { container, containerInner, userMediaContainer, displayMediaContainer, modalStyles } from './styles'
+import {
+    container,
+    containerInner,
+    userMediaContainer,
+    displayMediaContainer,
+    modalStyles,
+} from './styles'
 import useSize from '../../utils/hooks/use-video-size'
 import { userStreamState, displayStreamState, remoteStreamsState } from '../../atoms'
 import VideoBox from '../../comps/video'
