@@ -5,13 +5,17 @@ import CommanBar from './command-bar'
 import SidePanel from './side-panel'
 import VideoBoxes from './video-boxes'
 import Connections from './connections'
+import Fullscreen from '../comps/full-screen'
 import { roomState } from '../atoms'
 
 const App: FunctionComponent = () => {
     const room = useRecoilValue(roomState)
     const [panel, setPanel] = useState<'people' | 'chat' | ''>('')
+    const [fullscreen, setFullscreen] = useState(false)
+
     const onClickChat = () => (panel !== 'chat' ? setPanel('chat') : setPanel(''))
     const onClickPeople = () => (panel !== 'people' ? setPanel('people') : setPanel(''))
+    const onClickFullscreen = () => setFullscreen(!fullscreen)
 
     useEffect(() => {
         document.title =
@@ -22,14 +26,18 @@ const App: FunctionComponent = () => {
     }, [room])
 
     return (
-        <>
-            <CommanBar onClickChat={onClickChat} onClickPeople={onClickPeople} />
+        <Fullscreen fullbody on={fullscreen}>
+            <CommanBar
+                onClickFullscreen={onClickFullscreen}
+                onClickChat={onClickChat}
+                onClickPeople={onClickPeople}
+            />
             <VideoBoxes />
 
             <SidePanel setPanel={setPanel} panel={panel} onDismiss={() => setPanel('')} />
 
             <Connections />
-        </>
+        </Fullscreen>
     )
 }
 

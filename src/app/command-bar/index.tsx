@@ -2,6 +2,7 @@ import { CommandBar, DefaultButton, ThemeProvider, useTheme } from '@fluentui/re
 import type { ICommandBarItemProps, IButtonProps } from '@fluentui/react'
 import { FunctionComponent, useState } from 'react'
 import { useRecoilValue } from 'recoil'
+import { useFullScreen } from "../../comps/full-screen"
 import {
     audioDevicesState,
     videoDevicesState,
@@ -18,9 +19,10 @@ import InfoCallout from '../../comps/info-callout'
 interface MyCommandBarProps {
     onClickPeople?: () => void
     onClickChat?: () => void
+    onClickFullscreen?: () => void
 }
 
-const MyCommandBar: FunctionComponent<MyCommandBarProps> = ({ onClickPeople, onClickChat }) => {
+const MyCommandBar: FunctionComponent<MyCommandBarProps> = ({ onClickPeople, onClickChat, onClickFullscreen }) => {
     const theme = useTheme()
     const themeType = useThemeType()
     const setTheme = useSetTheme()
@@ -32,6 +34,7 @@ const MyCommandBar: FunctionComponent<MyCommandBarProps> = ({ onClickPeople, onC
     const { displayMediaStatus, startDisplayMedia, stopDisplayMedia } = useDisplayMedia()
     const { startUserMedia, stopUserMedia } = useUserMedia()
 
+    const { isFullscreen } = useFullScreen()
     const onAbort = useAbort()
 
     const iconMuted = {
@@ -184,6 +187,14 @@ const MyCommandBar: FunctionComponent<MyCommandBarProps> = ({ onClickPeople, onC
                     },
                 ],
             },
+        },
+        {
+            key: 'fullscreen',
+            text: 'Toggle fullscreen',
+            // eslint-disable-next-line no-nested-ternary
+            secondaryText: isFullscreen === undefined ? '' : isFullscreen ? 'On' : 'Off',
+            iconProps: { iconName: 'Fullscreen' },
+            onClick: () => onClickFullscreen?.(),
         },
     ]
 
