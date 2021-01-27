@@ -35,7 +35,7 @@ const CreateMeeting: FunctionComponent = () => {
                 },
             }
             socket.emit('create_room', room, ({ isError }: { isError: boolean }) => {
-                // on success it should redirect to main app via 'room_joined' event listened in src/index
+                // on success it should redirect to main app via 'joined_room' event listened in src/index
                 if (isError) {
                     onError()
                 }

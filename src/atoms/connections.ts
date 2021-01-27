@@ -1,3 +1,4 @@
+import { nanoid } from 'nanoid'
 import { atom, DefaultValue, selector } from 'recoil'
 import { Socket, io } from 'socket.io-client'
 
@@ -6,6 +7,11 @@ export const createSocket = (): Socket => {
 
     socket.on('connect', () => {
         console.log('Socket connected', socket.id)
+
+        const id  = sessionStorage.getItem('ID') || nanoid()
+        socket.emit('register', id)
+        
+        sessionStorage.setItem('ID', id) // for newly generated 
     })
     socket.on('disconnect', () => {
         console.log('Socket disconnected')
@@ -39,7 +45,7 @@ export const roomState = atom<Room | null>({
 
 export interface RemoteStream {
     stream: MediaStream
-    remoteSocketId: string
+    partnerId: string
 }
 
 export const remoteStreamsState = atom<RemoteStream[]>({
@@ -48,8 +54,8 @@ export const remoteStreamsState = atom<RemoteStream[]>({
 })
 
 export interface Connection {
+    partnerId: string
     initiator: boolean
-    remoteSocketId: string
     partnerName?: string
 }
 
@@ -80,14 +86,14 @@ export const removeConnectionsSelector = selector<Connection[]>({
         const remoteStreams = get(remoteStreamsState)
         set(
             remoteStreamsState,
-            remoteStreams.filter(r => !newVal.find(v => v.remoteSocketId === r.remoteSocketId)),
+            remoteStreams.filter(r => !newVal.find(v => v.partnerId === r.partnerId)),
         )
 
         // set new connections with val ones removed
         const connections = get(connectionsState)
         return set(
             connectionsState,
-            connections.filter(c => !newVal.find(v => v.remoteSocketId === c.remoteSocketId)),
+            connections.filter(c => !newVal.find(v => v.partnerId === c.partnerId)),
         )
     },
 })

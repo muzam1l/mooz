@@ -44,3 +44,24 @@ export function getVideoBoxSize(
         y: sizeX / aspect_ratio,
     }
 }
+
+/* eslint-disable */
+export function updateBandwidthRestriction(sdp: string, bandwidth: number) {
+    let modifier = 'AS'
+    // if (adapter.browserDetails.browser === 'firefox') {
+    if (navigator.userAgent.indexOf('Firefox') != -1) {
+        bandwidth = (bandwidth >>> 0) * 1000
+        modifier = 'TIAS'
+    }
+    if (sdp.indexOf('b=' + modifier + ':') === -1) {
+        // insert b= after c= line.
+        sdp = sdp.replace(/c=IN (.*)\r\n/, 'c=IN $1\r\nb=' + modifier + ':' + bandwidth + '\r\n')
+    } else {
+        sdp = sdp.replace(
+            new RegExp('b=' + modifier + ':.*\r\n'),
+            'b=' + modifier + ':' + bandwidth + '\r\n',
+        )
+    }
+    return sdp
+}
+/* eslint-enable */

@@ -1,6 +1,6 @@
 import { keyframes, mergeStyles } from '@fluentui/react'
-import { CSSProperties, useEffect, useRef } from 'react'
-import type { FunctionComponent } from 'react'
+import { useEffect, useRef } from 'react'
+import type { FunctionComponent, VideoHTMLAttributes } from 'react'
 
 const fadeInAnim = keyframes({
     from: {
@@ -21,9 +21,8 @@ const videoCLassname = mergeStyles({
     height: '100%',
     backgroundColor: 'transparent',
 })
-interface VideoBoxProps {
+interface VideoBoxProps extends VideoHTMLAttributes<HTMLVideoElement> {
     stream: MediaStream
-    [index: string]: any
 }
 /* eslint-disable jsx-a11y/media-has-caption */
 const VideoBox: FunctionComponent<VideoBoxProps> = ({ stream, ...props }) => {
@@ -47,7 +46,7 @@ const VideoBox: FunctionComponent<VideoBoxProps> = ({ stream, ...props }) => {
             controls={false}
             playsInline
             autoPlay
-            // eslint-disable-next-line
+            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
         >
             Seriously, How old are you and your browser!

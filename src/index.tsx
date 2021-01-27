@@ -1,4 +1,4 @@
-import React, { FunctionComponent, lazy, Suspense, useEffect, useState } from 'react'
+import React, { FunctionComponent, lazy, Suspense, useEffect } from 'react'
 import ReactDOM from 'react-dom'
 import { initializeIcons, mergeStyles, Spinner } from '@fluentui/react'
 import { RecoilRoot, useRecoilState, useRecoilValue } from 'recoil'
@@ -19,21 +19,21 @@ const spinner = mergeStyles({
 const Eagle: FunctionComponent = () => {
     const socket = useRecoilValue(socketState)
     const [room, setRoom] = useRecoilState(roomState)
-    const [loading, setLoading] = useState(false)
+    // const [loading, setLoading] = useState(false)
 
     useEffect(() => {
-        socket.on('room_joined', (r: Room) => {
+        socket.on('joined_room', (r: Room) => {
             setRoom(r)
         })
-        socket.on('disconnect', () => {
-            setLoading(true)
-        })
-        socket.on('connect', () => {
-            setLoading(false)
-        })
+        // socket.on('disconnect', () => {
+        //     toast('Reconnecting...', Timeot.PERSIST)
+        // })
+        // socket.on('connect', () => {
+        //     toast('Connected!', Timeout.SHORT)
+        // })
     }, []) // eslint-disable-line
 
-    if (loading) return <Spinner className={spinner} size={3} />
+    // if (loading) return <Spinner className={spinner} size={3} />
     if (!room) return <Landing />
     return <App />
 }

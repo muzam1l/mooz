@@ -1,45 +1,24 @@
 import { FunctionComponent, useCallback, useEffect, useRef } from 'react'
 import { useRecoilState, useRecoilValue } from 'recoil'
 import Peer from 'simple-peer'
+import { updateBandwidthRestriction } from '../../utils/helpers'
 import { preferencesState, remoteStreamsState, socketState, userStreamState } from '../../atoms'
 
 interface Message {
     from: string
-    signal?: any
+    signal?: any // eslint-disable-line @typescript-eslint/no-explicit-any
 }
 
 interface PeerProps extends Peer.Options {
-    /* socket id of remote connection to connect to */
-    partner: string
+    partnerId: string
 }
-
-/* eslint-disable */
-function updateBandwidthRestriction(sdp: string, bandwidth: number) {
-    let modifier = 'AS'
-    // if (adapter.browserDetails.browser === 'firefox') {
-    if (navigator.userAgent.indexOf('Firefox') != -1) {
-        bandwidth = (bandwidth >>> 0) * 1000
-        modifier = 'TIAS'
-    }
-    if (sdp.indexOf('b=' + modifier + ':') === -1) {
-        // insert b= after c= line.
-        sdp = sdp.replace(/c=IN (.*)\r\n/, 'c=IN $1\r\nb=' + modifier + ':' + bandwidth + '\r\n')
-    } else {
-        sdp = sdp.replace(
-            new RegExp('b=' + modifier + ':.*\r\n'),
-            'b=' + modifier + ':' + bandwidth + '\r\n',
-        )
-    }
-    return sdp
-}
-/* eslint-enable */
 
 const createSdpTransform = (bitrate: number) => (sdp: string) =>
     updateBandwidthRestriction(sdp, bitrate)
 
 const PeerComponent: FunctionComponent<PeerProps> = props => {
     const preferences = useRecoilValue(preferencesState)
-    const { partner, ...opts } = props
+    const { partnerId, ...opts } = props
     const [remoteStreams, setRemoteStreams] = useRecoilState(remoteStreamsState)
     const remoteStreamRef = useRef(new MediaStream())
     const userStream = useRecoilValue(userStreamState)
@@ -49,14 +28,15 @@ const PeerComponent: FunctionComponent<PeerProps> = props => {
     const peerRef = useRef<Peer.Instance>()
     if (!peerRef.current) {
         peerRef.current = new Peer({
+            // eslint-disable-next-line
             sdpTransform: createSdpTransform(500) as any, // 250k max bitrate
-            ...opts
+            ...opts,
         })
     }
 
     const onRemoteStream = useCallback(
         (stream: MediaStream) => {
-            console.log('onStream', stream.getTracks())
+            // console.log('onStream', stream.getTracks())
             const remoteStream = remoteStreamRef.current
             // remove prev tracks
             remoteStream.getTracks().forEach(t => {
@@ -68,18 +48,18 @@ const PeerComponent: FunctionComponent<PeerProps> = props => {
             stream.getTracks().forEach(t => remoteStream.addTrack(t))
 
             // save if not already
-            const present = remoteStreams.find(s => s.remoteSocketId === partner)
+            const present = remoteStreams.find(s => s.partnerId === partnerId)
             if (!present) {
                 setRemoteStreams([
                     ...remoteStreams,
                     {
-                        remoteSocketId: partner,
                         stream: remoteStream,
+                        partnerId,
                     },
                 ])
             }
         },
-        [setRemoteStreams, remoteStreams, partner],
+        [setRemoteStreams, remoteStreams, partnerId],
     )
 
     useEffect(() => {
@@ -88,20 +68,21 @@ const PeerComponent: FunctionComponent<PeerProps> = props => {
         // const onTrack = (track: any) => console.log('Got track', track)
         const onMessageRecieved = (msg: Message) => {
             const { signal, from } = msg
-            if (signal && from === partner) {
+            if (signal && from === partnerId) {
                 try {
                     peer.signal(signal)
                 } catch (err) {
-                    console.error(err)
+                    // console.error(err)
                 }
             }
         }
         const onConnected = () => {
             console.log('Conneted')
         }
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const onLocalSignal = (signal: any) => {
             socket.send({
-                to: partner,
+                to: partnerId,
                 signal,
             })
         }
@@ -123,7 +104,7 @@ const PeerComponent: FunctionComponent<PeerProps> = props => {
 
             socket.off('message', onMessageRecieved)
         }
-    }, [onRemoteStream, socket, partner])
+    }, [onRemoteStream, socket, partnerId])
 
     useEffect(() => {
         const peer = peerRef.current as Peer.Instance
@@ -132,7 +113,7 @@ const PeerComponent: FunctionComponent<PeerProps> = props => {
                 peer.addStream(userStream)
             }
         } catch (err) {
-            console.error(err)
+            // console.error(err)
         }
         return () => {
             try {
@@ -140,7 +121,7 @@ const PeerComponent: FunctionComponent<PeerProps> = props => {
                     peer.removeStream(userStream)
                 }
             } catch (err) {
-                console.error(err)
+                // console.error(err)
             }
         }
     }, [userStream])
@@ -149,7 +130,7 @@ const PeerComponent: FunctionComponent<PeerProps> = props => {
     useEffect(() => {
         if (!opts.initiator) {
             socket.send({
-                to: partner,
+                to: partnerId,
                 proposal: true,
                 name: preferences.name,
             })

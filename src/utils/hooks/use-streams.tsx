@@ -194,11 +194,11 @@ export const useDisplayMedia = (): DisplayMediaReturn => {
 
     const start = useCallback(async () => {
         try {
-            // eslint-disable-next-line
-            const stream = await (navigator.mediaDevices as any).getDisplayMedia({
+            // BUG No Ts definition for getDisplayMedia
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const stream = await(navigator.mediaDevices as any).getDisplayMedia({
                 video: { cursor: 'always' },
             })
-            // BUG No Ts definition for getDisplayMedia
             setDisplayMedia(stream)
             setStatus('on')
         } catch (err) {
