@@ -6,23 +6,21 @@ import {
     Connection,
     addConnectionsSelector,
     removeConnectionsSelector,
-    roomState,
     socketState,
 } from '../../atoms'
 
 const Connections: FunctionComponent = () => {
     const addConnections = useSetRecoilState(addConnectionsSelector)
     const [connections, removeConnections] = useRecoilState(removeConnectionsSelector)
-    const setRoom = useSetRecoilState(roomState)
     const socket = useRecoilValue(socketState)
 
     const onPersonJoined = useCallback(
-        (data: { socketId: string; name: string }) => {
-            const { socketId: remoteSocketId, name } = data
+        (data: { sessionId: string; name: string }) => {
+            const { sessionId: partnerId, name: partnerName } = data
             const connection: Connection = {
+                partnerId,
+                partnerName,
                 initiator: false,
-                remoteSocketId,
-                partnerName: name,
             }
             // setConnections(connections.concat(connection))
             addConnections([connection])
@@ -31,12 +29,12 @@ const Connections: FunctionComponent = () => {
     )
 
     const onMessage = useCallback(
-        ({ proposal, from, name }) => {
+        ({ proposal, from, name: partnerName }) => {
             if (proposal) {
                 const connection: Connection = {
+                    partnerId: from,
                     initiator: true,
-                    remoteSocketId: from,
-                    partnerName: name,
+                    partnerName,
                 }
                 // setConnections(connections.concat(connection))
                 addConnections([connection])
@@ -46,19 +44,12 @@ const Connections: FunctionComponent = () => {
     )
 
     const onPersonLeft = useCallback(
-        ({ socketId }) => {
-            // setConnections(connections.filter(p => p.remoteSocketId !== socketId))
-            removeConnections(connections.filter(c => c.remoteSocketId === socketId))
+        ({ sessionId }) => {
+            // setConnections(connections.filter(p => p.partnerId !== socketId))
+            removeConnections(connections.filter(c => c.partnerId === sessionId))
         },
         [removeConnections, connections],
     )
-
-    const onDisconnect = useCallback(() => {
-        // clean up will be done by sever
-        // setConnections([])
-        removeConnections(connections)
-        setRoom(null)
-    }, [removeConnections, connections, setRoom])
 
     useEffect(() => {
         socket.on('person_joined', onPersonJoined)
@@ -81,21 +72,10 @@ const Connections: FunctionComponent = () => {
         }
     }, [onPersonLeft, socket])
 
-    useEffect(() => {
-        socket.on('disconnect', onDisconnect)
-        return () => {
-            socket.off('disconnect', onDisconnect)
-        }
-    }, [onDisconnect, socket])
-
     return (
         <>
             {connections.map(conn => (
-                <Peer
-                    key={conn.remoteSocketId}
-                    initiator={conn.initiator}
-                    partner={conn.remoteSocketId}
-                />
+                <Peer key={conn.partnerId} initiator={conn.initiator} partnerId={conn.partnerId} />
             ))}
         </>
     )

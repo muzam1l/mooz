@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react'
-import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil'
+import { useRecoilState, useRecoilValue } from 'recoil'
 import { Stack, TextField, PrimaryButton, useTheme, Label } from '@fluentui/react'
 import type { FormEvent, FunctionComponent } from 'react'
 import { mb2, submit } from './styles'
@@ -31,7 +31,7 @@ const JoinMeeting: FunctionComponent<JoinProps> = ({ defaultId }) => {
             setError(null)
             setDisabled(true)
             socket.emit('join_room', { name, link }, ({ isError }: { isError: boolean }) => {
-                // on  should redirect to main app via 'room_joined' event listened in src/index
+                // on  should redirect to main app via 'joined_room' event listened in src/index
                 if (isError) {
                     onError()
                 }

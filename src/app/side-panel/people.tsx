@@ -4,7 +4,6 @@ import {
     Persona,
     List,
     PersonaPresence,
-    SearchBox,
     useTheme,
     PersonaSize,
     IconButton,
@@ -14,7 +13,7 @@ import {
 } from '@fluentui/react'
 import { useRecoilValue } from 'recoil'
 import type { FunctionComponent } from 'react'
-import { vFluid, searchbox, vScroll, message } from './styles'
+import { vFluid, vScroll, message } from './styles'
 import { Connection, connectionsState } from '../../atoms'
 import InfoCallout from '../../comps/info-callout'
 
@@ -28,7 +27,7 @@ const PersonComponent: FunctionComponent<{ item?: Connection; index?: number }> 
     return (
         <>
             <Stack
-                key={item.remoteSocketId}
+                key={item.partnerId}
                 onContextMenu={e => {
                     e.preventDefault()
                     // eslint-disable-next-line
@@ -48,7 +47,7 @@ const PersonComponent: FunctionComponent<{ item?: Connection; index?: number }> 
             >
                 <Persona
                     presence={PersonaPresence.online}
-                    text={item.partnerName || `<${item.remoteSocketId}>`}
+                    text={item.partnerName || `<${item.partnerId}>`}
                     secondaryText="Online"
                     size={PersonaSize.size32}
                 />
@@ -118,12 +117,6 @@ const PeoplePanel: FunctionComponent = () => {
                 </div>
             ) : (
                 <Stack className={vFluid} horizontalAlign="center">
-                    {/* <SearchBox
-                        underlined
-                        placeholder="Search people..."
-                        className={searchbox}
-                        ariaLabel="Search for people in this meeting"
-                    /> */}
                     <DefaultButton
                         onClick={() => setShowInfo(!showInfo)}
                         text="Info"

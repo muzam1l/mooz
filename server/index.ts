@@ -34,18 +34,32 @@ interface Room {
     }
 }
 
+interface Person {
+    sessionId: string
+}
+
 io.on('connection', (socket: Socket) => {
     console.log('socket connected', socket.id)
 
+    socket.on('register', sessionId => {
+        roomsCache.set<Person>(socket.id, { sessionId })
+
+        /**
+         socket joins room with same session id
+         This allows for extra layer above socket id so client just communicates with session id
+        */
+        socket.join(sessionId)
+    })
+
     socket.on('create_room', (room: Room, cb) => {
         try {
-            // TOTHINK is anybody really gonna be able to just create a room 😶
+            // TODO anonymous auth and/or rate limiting
             const roomId = nanoid()
             room.id = roomId
 
             socket.join(roomId)
             roomsCache.set<Room>(roomId, room)
-            io.to(socket.id).emit('room_joined', room)
+            io.to(socket.id).emit('joined_room', room)
 
             cb({ isError: false })
         } catch (err) {
@@ -60,15 +74,16 @@ io.on('connection', (socket: Socket) => {
             const room = getRoomFromLink(link) // throws error on no room
 
             socket.join(room.id)
+            const { sessionId } = roomsCache.get(socket.id) as Person
             socket.to(room.id).emit('person_joined', {
                 name,
-                socketId: socket.id,
+                sessionId,
             })
-            io.to(socket.id).emit('room_joined', room)
+            io.to(socket.id).emit('joined_room', room)
 
             cb({ isError: false })
         } catch (err) {
-            console.error(err)
+            console.error('Error creating room', err)
             cb({ isError: true })
         }
     })
@@ -80,8 +95,9 @@ io.on('connection', (socket: Socket) => {
                 if (room === socket.id) return
 
                 socket.leave(room)
+                const { sessionId } = roomsCache.get(socket.id) as Person
                 socket.to(room).emit('person_left', {
-                    socketId: socket.id,
+                    sessionId,
                 })
                 io.in(room)
                     .allSockets()
@@ -93,28 +109,31 @@ io.on('connection', (socket: Socket) => {
                     })
             })
         } catch (err) {
-            console.error(err)
+            console.error('Error leaving room 😂', err)
         }
     })
 
     /*
-     messages ('message' events) are send as is to other socket specified by `to` key in data 
-     `to` key is removed and `from` is added in delivered message 
+    messages ('message' events) are send as is to other socket specified by `to` key in data 
+    `to` key is removed and `from` is added in delivered message\
+    both `to` and `from` are session ids
     */
     socket.on('message', message => {
         const { to, ...msg } = message
+        const { sessionId } = roomsCache.get(socket.id) as Person
         socket.to(to).send({
-            from: socket.id,
+            from: sessionId,
             ...msg,
         })
     })
 
     socket.on('disconnecting', reason => {
-        // will leave socket rooms automatically. socket.leave(rooms)
+        const { sessionId } = roomsCache.get(socket.id) as Person
+        roomsCache.del(socket.id)
         socket.rooms.forEach(room => {
-            if (room !== socket.id) {
-                io.to(room).emit('person_left', {
-                    socketId: socket.id,
+            if (room !== socket.id || room !== sessionId) {
+                io.to(room).emit('person_disconnected', {
+                    sessionId,
                 })
                 io.in(room)
                     .allSockets()
