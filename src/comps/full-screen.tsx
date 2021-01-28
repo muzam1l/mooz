@@ -5,19 +5,19 @@ import type { FunctionComponent, PropsWithChildren } from 'react'
 interface Props {
     on?: boolean
     fullbody?: boolean
+    dblclick?: boolean
 }
 
 /* eslint-disable react/jsx-props-no-spreading */
-const Fullscreen: FunctionComponent<PropsWithChildren<Props>> = ({ on, fullbody, ...props }) => {
+const Fullscreen: FunctionComponent<PropsWithChildren<Props>> = ({ on, fullbody, dblclick, ...props }) => {
     const ref = useRef<HTMLDivElement | null>(null)
     useEffect(() => {
-        if (!fscreen.fullscreenEnabled) return
+        if (!fscreen.fullscreenEnabled) return undefined
+        let elem: HTMLElement
+        if (!fullbody && ref.current) elem = ref.current
+        else elem = document.body
         try {
             if (on && !fscreen.fullscreenElement) {
-                let elem
-                if (!fullbody && ref.current) elem = ref.current
-                else elem = document.body
-
                 fscreen.requestFullscreen(elem)
             } else if (!on && fscreen.fullscreenElement) {
                 fscreen.exitFullscreen()
@@ -25,7 +25,19 @@ const Fullscreen: FunctionComponent<PropsWithChildren<Props>> = ({ on, fullbody,
         } catch (err) {
             // toast('Fullscreen error', Timeout.SHORT)
         }
-    }, [on, fullbody])
+        const handleDblClick = () => {
+            if (!dblclick) return
+            try {
+                const isFullscreen = !!fscreen.fullscreenElement
+                if (isFullscreen) fscreen.exitFullscreen()
+                else fscreen.requestFullscreen(elem)
+            } catch (err) {
+                // toast('Fullscreen error', Timeout.SHORT)
+            }
+        }
+        elem.addEventListener('dblclick', handleDblClick)
+        return () => elem.removeEventListener('dblclick', handleDblClick)
+    }, [on, fullbody, dblclick])
     return <div ref={ref} {...props} />
 }
 export default Fullscreen

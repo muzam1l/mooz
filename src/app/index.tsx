@@ -26,7 +26,7 @@ const App: FunctionComponent = () => {
     }, [room])
 
     return (
-        <Fullscreen fullbody on={fullscreen}>
+        <Fullscreen on={fullscreen} dblclick fullbody>
             <CommanBar
                 onClickFullscreen={onClickFullscreen}
                 onClickChat={onClickChat}
