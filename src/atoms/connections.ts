@@ -8,10 +8,10 @@ export const createSocket = (): Socket => {
     socket.on('connect', () => {
         console.log('Socket connected', socket.id)
 
-        const id  = sessionStorage.getItem('ID') || nanoid()
+        const id = sessionStorage.getItem('ID') || nanoid()
         socket.emit('register', id)
-        
-        sessionStorage.setItem('ID', id) // for newly generated 
+
+        sessionStorage.setItem('ID', id) // for newly generated
     })
     socket.on('disconnect', () => {
         console.log('Socket disconnected')

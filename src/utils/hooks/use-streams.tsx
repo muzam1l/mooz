@@ -196,7 +196,7 @@ export const useDisplayMedia = (): DisplayMediaReturn => {
         try {
             // BUG No Ts definition for getDisplayMedia
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const stream = await(navigator.mediaDevices as any).getDisplayMedia({
+            const stream = await (navigator.mediaDevices as any).getDisplayMedia({
                 video: { cursor: 'always' },
             })
             setDisplayMedia(stream)

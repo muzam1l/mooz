@@ -2,19 +2,23 @@ import { createServer } from 'http'
 import { Server, Socket } from 'socket.io'
 import { nanoid } from 'nanoid'
 import NodeCache from 'node-cache'
-import serveStatic from 'serve-static'
+// @ts-ignore
+import gzipStatic from 'connect-gzip-static'
+import finalhandler from 'finalhandler'
+import { resolve } from "path";
 
-const serve = serveStatic('build')
+const serve = gzipStatic(resolve(__dirname, '../build'))
 
 const IO_OPTIONS = { cors: { origin: '*' } }
 
 const httpServer = createServer((req, res) => {
     const nxt = () => {
         req.url = '/'
-        serve(req, res, nxt)
+        serve(req, res, finalhandler(req, res))
     }
     serve(req, res, nxt)
 })
+
 const io = new Server(httpServer, IO_OPTIONS)
 
 const roomsCache = new NodeCache({
@@ -73,8 +77,9 @@ io.on('connection', (socket: Socket) => {
             const { name, link } = opts
             const room = getRoomFromLink(link) // throws error on no room
 
+            const { sessionId } = roomsCache.get<Person>(socket.id) || {}
+            if (!sessionId) throw Error('No session id')
             socket.join(room.id)
-            const { sessionId } = roomsCache.get(socket.id) as Person
             socket.to(room.id).emit('person_joined', {
                 name,
                 sessionId,
@@ -95,10 +100,12 @@ io.on('connection', (socket: Socket) => {
                 if (room === socket.id) return
 
                 socket.leave(room)
-                const { sessionId } = roomsCache.get(socket.id) as Person
-                socket.to(room).emit('person_left', {
-                    sessionId,
-                })
+                const { sessionId } = roomsCache.get<Person>(socket.id) || {}
+                if (sessionId) {
+                    socket.to(room).emit('person_left', {
+                        sessionId,
+                    })
+                }
                 io.in(room)
                     .allSockets()
                     .then(sockets => {
@@ -120,7 +127,8 @@ io.on('connection', (socket: Socket) => {
     */
     socket.on('message', message => {
         const { to, ...msg } = message
-        const { sessionId } = roomsCache.get(socket.id) as Person
+        const { sessionId } = roomsCache.get<Person>(socket.id) || {}
+        if (!sessionId) return
         socket.to(to).send({
             from: sessionId,
             ...msg,
@@ -132,9 +140,11 @@ io.on('connection', (socket: Socket) => {
         roomsCache.del(socket.id)
         socket.rooms.forEach(room => {
             if (room !== socket.id || room !== sessionId) {
-                io.to(room).emit('person_disconnected', {
-                    sessionId,
-                })
+                if (sessionId) {
+                    io.to(room).emit('person_disconnected', {
+                        sessionId,
+                    })
+                }
                 io.in(room)
                     .allSockets()
                     .then(sockets => {
