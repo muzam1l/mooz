@@ -31,7 +31,7 @@
         "node-dev": "nodemon -e ts --exec \"ts-node --project server/tsconfig.json\" ./server/index.ts",
         "node-build": "tsc -p server",
         "build": "npm run format && npm run lint && react-scripts build && gzipper compress --level 8 ./build && npm run node-build",
-        "start": "node ./server/lib",
+        "start": "node ./server",
         "format": "prettier --write src/**/*.ts{,x}",
         "lint": "eslint src/**/*.ts{,x}"
     },
