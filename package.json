@@ -12,6 +12,8 @@
         "@testing-library/react": "^11.2.3",
         "@testing-library/user-event": "^12.6.0",
         "fscreen": "^1.1.0",
+        "connect-gzip-static": "^2.1.1",
+        "finalhandler": "^1.1.2",
         "nanoid": "^3.1.20",
         "node-cache": "^5.1.2",
         "react": "^17.0.1",
@@ -28,7 +30,7 @@
         "react-dev": "react-scripts start",
         "node-dev": "nodemon -e ts --exec \"ts-node --project server/tsconfig.json\" ./server/index.ts",
         "node-build": "tsc -p server",
-        "build": "npm run format && npm run lint && react-scripts build && npm run node-build",
+        "build": "npm run format && npm run lint && react-scripts build && gzipper compress --level 8 ./build && npm run node-build",
         "start": "node ./server/lib",
         "format": "prettier --write src/**/*.ts{,x}",
         "lint": "eslint src/**/*.ts{,x}"
@@ -53,11 +55,11 @@
     },
     "devDependencies": {
         "@types/fscreen": "^1.0.1",
+        "@types/finalhandler": "^1.1.0",
         "@types/jest": "^26.0.20",
         "@types/node": "^14.14.21",
         "@types/react": "^16.14.2",
         "@types/react-dom": "^16.9.10",
-        "@types/serve-static": "^1.13.9",
         "@types/simple-peer": "^9.6.1",
         "@typescript-eslint/eslint-plugin": "^4.12.0",
         "@typescript-eslint/parser": "^4.12.0",
@@ -69,6 +71,7 @@
         "eslint-plugin-jsx-a11y": "^6.4.1",
         "eslint-plugin-react": "^7.22.0",
         "eslint-plugin-react-hooks": "^4.2.0",
+        "gzipper": "^4.4.0",
         "prettier": "2.2.1",
         "ts-node": "^9.1.1",
         "typescript": "^4.1.3"
