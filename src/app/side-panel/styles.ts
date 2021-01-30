@@ -97,6 +97,7 @@ export const useModalClassnames = makeStyles(theme => ({
         padding: '0 1em',
         overflowY: 'auto',
         height: '100%',
+        width: '500px'
     },
 }))
 export const modalStyles: Partial<IModalStyles> = {

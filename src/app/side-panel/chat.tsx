@@ -1,6 +1,7 @@
 import { Stack, DefaultButton, Modal, ContextualMenu, IconButton } from '@fluentui/react'
 import { useCallback, useState } from 'react'
 import type { FunctionComponent } from 'react'
+import { useRecoilValue } from 'recoil'
 import {
     message,
     useCloseButtonStyles,
@@ -9,56 +10,29 @@ import {
     vFluid,
     vScroll,
 } from './styles'
+import { messagesState } from '../../atoms'
+import { Message, Messages } from '../../comps/chat'
 
 interface ChatPanelProps {
     setPanel?: (arg0: 'people' | 'chat' | '') => void
 }
 
 const ChatPanel: FunctionComponent<ChatPanelProps> = ({ setPanel }) => {
+    const messages = useRecoilValue(messagesState)
     const [isModalled, setIsModalled] = useState(false)
     const modalClassnames = useModalClassnames()
     const closeButtonStyles = useCloseButtonStyles()
     const isMobile = window.matchMedia('(max-width: 480px)').matches
     const onRenderChatContent = useCallback(
         () => (
-            <div>
-                Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quod sint expedita autem
-                repellendus ipsam distinctio, sit temporibus omnis, magni rerum rem. Deleniti dolor
-                recusandae veniam laudantium nostrum autem, perspiciatis eos! Lorem ipsum dolor sit
-                amet, consectetur adipisicing elit. Quod sint expedita autem repellendus ipsam
-                distinctio, sit temporibus omnis, magni rerum rem. Deleniti dolor recusandae veniam
-                laudantium nostrum autem, perspiciatis eos! Lorem ipsum dolor sit amet, consectetur
-                adipisicing elit. Quod sint expedita autem repellendus ipsam distinctio, sit
-                temporibus omnis, magni rerum rem. Deleniti dolor recusandae veniam laudantium
-                nostrum autem, perspiciatis eos! Lorem ipsum dolor sit amet, consectetur adipisicing
-                elit. Quod sint expedita autem repellendus ipsam distinctio, sit temporibus omnis,
-                magni rerum rem. Deleniti dolor recusandae veniam laudantium nostrum autem,
-                perspiciatis eos! Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quod
-                sint expedita autem repellendus ipsam distinctio, sit temporibus omnis, magni rerum
-                rem. Deleniti dolor recusandae veniam laudantium nostrum autem, perspiciatis eos!
-                Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quod sint expedita autem
-                repellendus ipsam distinctio, sit temporibus omnis, magni rerum rem. Deleniti dolor
-                recusandae veniam laudantium nostrum autem, perspiciatis eos! Lorem ipsum dolor sit
-                amet, consectetur adipisicing elit. Quod sint expedita autem repellendus ipsam
-                distinctio, sit temporibus omnis, magni rerum rem. Deleniti dolor recusandae veniam
-                laudantium nostrum autem, perspiciatis eos! Lorem ipsum dolor sit amet, consectetur
-                adipisicing elit. Quod sint expedita autem repellendus ipsam distinctio, sit
-                temporibus omnis, magni rerum rem. Deleniti dolor recusandae veniam laudantium
-                nostrum autem, perspiciatis eos! Lorem ipsum dolor sit amet, consectetur adipisicing
-                elit. Quod sint expedita autem repellendus ipsam distinctio, sit temporibus omnis,
-                magni rerum rem. Deleniti dolor recusandae veniam laudantium nostrum autem,
-                perspiciatis eos! Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quod
-                sint expedita autem repellendus ipsam distinctio, sit temporibus omnis, magni rerum
-                rem. Deleniti dolor recusandae veniam laudantium nostrum autem, perspiciatis eos!
-                Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quod sint expedita autem
-                repellendus ipsam distinctio, sit temporibus omnis, magni rerum rem. Deleniti dolor
-                recusandae veniam laudantium nostrum autem, perspiciatis eos! Lorem ipsum dolor sit
-                amet, consectetur adipisicing elit. Quod sint expedita autem repellendus ipsam
-                distinctio, sit temporibus omnis, magni rerum rem. Deleniti dolor recusandae veniam
-                laudantium nostrum autem, perspiciatis eos!
-            </div>
+            <Messages>
+                {messages.map(msg => (
+                    <Message key={msg.id} title={msg.author} text={msg.text} mine={msg.mine} />
+                ))}
+                {!messages.length && <div className={message}>Chat is empty</div>}
+            </Messages>
         ),
-        [],
+        [messages],
     )
     const onRenderModal = useCallback(
         () => (
@@ -97,7 +71,8 @@ const ChatPanel: FunctionComponent<ChatPanelProps> = ({ setPanel }) => {
         <Stack verticalAlign="center" className={vFluid}>
             {/* Undock button */}
             {!isModalled && !isMobile && (
-                <DefaultButton
+                <IconButton
+                    title="Undock"
                     onClick={() => {
                         setPanel?.('')
                         setIsModalled(true)

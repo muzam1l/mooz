@@ -1,10 +1,19 @@
 import { FunctionComponent, useCallback, useEffect, useRef } from 'react'
-import { useRecoilState, useRecoilValue } from 'recoil'
+import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil'
 import Peer from 'simple-peer'
 import { updateBandwidthRestriction } from '../../utils/helpers'
-import { preferencesState, remoteStreamsState, socketState, userStreamState } from '../../atoms'
+import {
+    addMessageSelector,
+    preferencesState,
+    remoteStreamsState,
+    socketState,
+    userStreamState,
+    PeerData,
+    Message,
+} from '../../atoms'
+import { MoozPeer } from '../../react-app-env'
 
-interface Message {
+interface SignalMessage {
     from: string
     signal?: any // eslint-disable-line @typescript-eslint/no-explicit-any
 }
@@ -17,6 +26,7 @@ const createSdpTransform = (bitrate: number) => (sdp: string) =>
     updateBandwidthRestriction(sdp, bitrate)
 
 const PeerComponent: FunctionComponent<PeerProps> = props => {
+    const addMessage = useSetRecoilState(addMessageSelector)
     const preferences = useRecoilValue(preferencesState)
     const { partnerId, ...opts } = props
     const [remoteStreams, setRemoteStreams] = useRecoilState(remoteStreamsState)
@@ -33,6 +43,19 @@ const PeerComponent: FunctionComponent<PeerProps> = props => {
             ...opts,
         })
     }
+
+    const saveInstance = () => {
+        const peer = peerRef.current as Peer.Instance
+        const moozPeer: MoozPeer = { peer, partnerId }
+        if (!window.moozPeers) window.moozPeers = [moozPeer]
+        
+        // remove old copy
+        window.moozPeers = window.moozPeers.filter(p => p.partnerId !== partnerId)
+            
+        // update
+        window.moozPeers.push(moozPeer)
+    }
+    saveInstance()
 
     const onRemoteStream = useCallback(
         (stream: MediaStream) => {
@@ -64,9 +87,7 @@ const PeerComponent: FunctionComponent<PeerProps> = props => {
 
     useEffect(() => {
         const peer = peerRef.current as Peer.Instance
-        // const onDataRecieved = (data: any) => alert(data)
-        // const onTrack = (track: any) => console.log('Got track', track)
-        const onMessageRecieved = (msg: Message) => {
+        const onMessageRecieved = (msg: SignalMessage) => {
             const { signal, from } = msg
             if (signal && from === partnerId) {
                 try {
@@ -86,25 +107,38 @@ const PeerComponent: FunctionComponent<PeerProps> = props => {
                 signal,
             })
         }
+        const onDataRecieved = (str: string) => {
+            try {
+                const data: PeerData = JSON.parse(str)
+                if (data.message) {
+                    const msg: Message = {
+                        ...data.message,
+                        mine: false,
+                    }
+                    addMessage([msg])
+                    // TODO toast
+                }
+            } catch (err) {
+                // console.error('Data error', err)
+            }
+        }
 
         peer.on('stream', onRemoteStream)
-        // peer.on('track', onTrack)
         peer.on('signal', onLocalSignal)
-        // peer.on('data', onDataRecieved)
+        peer.on('data', onDataRecieved)
         peer.on('connect', onConnected)
 
         socket.on('message', onMessageRecieved)
 
         return () => {
             peer.off('stream', onRemoteStream)
-            // peer.off('track', onTrack)
             peer.off('signal', onLocalSignal)
             peer.off('connect', onConnected)
-            // peer.off('data', onDataRecieved)
+            peer.off('data', onDataRecieved)
 
             socket.off('message', onMessageRecieved)
         }
-    }, [onRemoteStream, socket, partnerId])
+    }, [onRemoteStream, socket, partnerId, addMessage])
 
     useEffect(() => {
         const peer = peerRef.current as Peer.Instance

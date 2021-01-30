@@ -8,10 +8,10 @@ export const createSocket = (): Socket => {
     socket.on('connect', () => {
         console.log('Socket connected', socket.id)
 
-        const id  = sessionStorage.getItem('ID') || nanoid()
+        const id = sessionStorage.getItem('ID') || nanoid()
         socket.emit('register', id)
-        
-        sessionStorage.setItem('ID', id) // for newly generated 
+
+        sessionStorage.setItem('ID', id) // for newly generated
     })
     socket.on('disconnect', () => {
         console.log('Socket disconnected')
@@ -72,7 +72,13 @@ export const addConnectionsSelector = selector<Connection[]>({
             throw Error('What were you thinking dude')
         }
         const connections = get(connectionsState)
-        return set(connectionsState, connections.concat(...newVal))
+        const toAdd: Connection[] = []
+        newVal.forEach(val => {
+            if (!connections.find(c => c.partnerId === val.partnerId)) {
+                toAdd.push(val)
+            }
+        })
+        if (toAdd.length) set(connectionsState, connections.concat(toAdd))
     },
 })
 export const removeConnectionsSelector = selector<Connection[]>({
@@ -91,9 +97,16 @@ export const removeConnectionsSelector = selector<Connection[]>({
 
         // set new connections with val ones removed
         const connections = get(connectionsState)
-        return set(
+        set(
             connectionsState,
             connections.filter(c => !newVal.find(v => v.partnerId === c.partnerId)),
         )
+
+        // remove those peers 
+        if (window.moozPeers) {
+            window.moozPeers = window.moozPeers.filter(
+                p => !newVal.find(v => v.partnerId === p.partnerId),
+            )
+        }
     },
 })

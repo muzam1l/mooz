@@ -3,7 +3,6 @@ import { PartialTheme } from '@fluentui/react'
 export const defaultTheme: PartialTheme = {
     stylesheets: [
         `
-
     body {
         margin: 0;
         overflow: hidden;

@@ -3,6 +3,7 @@ import { useRecoilSnapshot } from 'recoil'
 
 export * from './local'
 export * from './connections'
+export * from './chat'
 
 /* eslint-disable */
 export function DebugObserver(): null {
