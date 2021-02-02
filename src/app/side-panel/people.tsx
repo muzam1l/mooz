@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react'
+import { ReactText, useCallback, useEffect, useRef, useState } from 'react'
 import {
     Stack,
     Persona,
@@ -16,6 +16,7 @@ import type { FunctionComponent } from 'react'
 import { vFluid, vScroll, message } from './styles'
 import { Connection, connectionsState } from '../../atoms'
 import InfoCallout from '../../comps/info-callout'
+import toast, { dismissToast, Timeout, ToastType } from '../../comps/toast'
 
 const PersonComponent: FunctionComponent<{ item?: Connection; index?: number }> = ({
     index,
@@ -24,6 +25,9 @@ const PersonComponent: FunctionComponent<{ item?: Connection; index?: number }> 
     const [mouseEvent, setMouseEvent] = useState<MouseEvent | null>(null)
     const theme = useTheme()
     if (!item || index === undefined) return null
+    const showNotImplemented = () => {
+        toast('Not Implemented', { autoClose: Timeout.SHORT, type: ToastType.severeWarning })
+    }
     return (
         <>
             <Stack
@@ -70,11 +74,13 @@ const PersonComponent: FunctionComponent<{ item?: Connection; index?: number }> 
                         key: 'mute',
                         text: 'Mute',
                         iconProps: { iconName: 'MicOff' },
+                        onClick: showNotImplemented,
                     },
                     {
                         key: 'hide',
                         text: 'Hide',
                         iconProps: { iconName: 'VideoOff' },
+                        onClick: showNotImplemented,
                     },
                     {
                         key: 'divider1',
@@ -84,6 +90,7 @@ const PersonComponent: FunctionComponent<{ item?: Connection; index?: number }> 
                         key: 'kick',
                         text: 'Kick out',
                         iconProps: { iconName: 'SignOut' },
+                        onClick: showNotImplemented,
                     },
                 ]}
                 onDismiss={() => {
@@ -103,6 +110,26 @@ const PeoplePanel: FunctionComponent = () => {
         [],
     )
     const [showInfo, setShowInfo] = useState(false)
+    const aloneToast = useRef<ReactText>()
+    useEffect(() => {
+        if (!connections.length && !aloneToast.current)
+            aloneToast.current = toast(
+                'You are curently alone 💩, make some friends and invite them!',
+                {
+                    autoClose: Timeout.PERSIST,
+                    type: ToastType.info,
+                },
+            )
+        else if (connections.length && aloneToast.current) {
+            if (aloneToast.current) {
+                dismissToast(aloneToast.current)
+                aloneToast.current = undefined
+            }
+        }
+    }, [connections])
+    useEffect(() => () => {
+        if (aloneToast.current) dismissToast(aloneToast.current)
+    }, [])
     return (
         <Stack verticalAlign="center" className={vFluid}>
             {!connections.length ? (

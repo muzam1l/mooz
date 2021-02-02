@@ -1,5 +1,6 @@
 import { useCallback } from 'react'
 import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil'
+import toast, { ToastType } from '../../comps/toast'
 import { removeConnectionsSelector, roomState, socketState } from '../../atoms'
 
 const useAbort = (): (() => void) => {
@@ -11,6 +12,7 @@ const useAbort = (): (() => void) => {
         removeConnections(connections)
         setRoom(null)
         socket.emit('leave_room')
+        toast('Room abandoned!, enjoy your lonely life', { type: ToastType.warning })
     }, [removeConnections, connections, setRoom, socket])
 
     return onAbort

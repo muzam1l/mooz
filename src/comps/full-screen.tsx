@@ -1,6 +1,7 @@
 import fscreen from 'fscreen'
 import { useEffect, useRef, useState } from 'react'
 import type { FunctionComponent, PropsWithChildren } from 'react'
+import toast, { Timeout, ToastType } from './toast'
 
 interface Props {
     on?: boolean
@@ -9,7 +10,12 @@ interface Props {
 }
 
 /* eslint-disable react/jsx-props-no-spreading */
-const Fullscreen: FunctionComponent<PropsWithChildren<Props>> = ({ on, fullbody, dblclick, ...props }) => {
+const Fullscreen: FunctionComponent<PropsWithChildren<Props>> = ({
+    on,
+    fullbody,
+    dblclick,
+    ...props
+}) => {
     const ref = useRef<HTMLDivElement | null>(null)
     useEffect(() => {
         if (!fscreen.fullscreenEnabled) return undefined
@@ -23,16 +29,19 @@ const Fullscreen: FunctionComponent<PropsWithChildren<Props>> = ({ on, fullbody,
                 fscreen.exitFullscreen()
             }
         } catch (err) {
-            // toast('Fullscreen error', Timeout.SHORT)
+            toast('Fullscreen error', { autoClose: Timeout.SHORT, type: ToastType.error })
         }
         const handleDblClick = () => {
             if (!dblclick) return
             try {
                 const isFullscreen = !!fscreen.fullscreenElement
                 if (isFullscreen) fscreen.exitFullscreen()
-                else fscreen.requestFullscreen(elem)
+                else {
+                    fscreen.requestFullscreen(elem);
+                    toast('Entered into fullscreen mode, double click to toggle', { type: ToastType.info })
+                }
             } catch (err) {
-                // toast('Fullscreen error', Timeout.SHORT)
+                toast('Fullscreen error', { autoClose: Timeout.SHORT, type: ToastType.error })
             }
         }
         elem.addEventListener('dblclick', handleDblClick)

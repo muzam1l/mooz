@@ -1,5 +1,5 @@
 import { FunctionComponent } from 'react'
-import { Stack, Modal, ContextualMenu } from '@fluentui/react'
+import { Stack, Modal, ContextualMenu, useTheme } from '@fluentui/react'
 import { useRecoilValue } from 'recoil'
 import {
     container,
@@ -15,7 +15,7 @@ import VideoBox from '../../comps/video'
 const AR = 4 / 3
 
 const VideoBoxes: FunctionComponent = () => {
-    // const theme = useTheme()
+    const theme = useTheme()
 
     const userMedia = useRecoilValue(userStreamState)
     const displayMedia = useRecoilValue(displayStreamState)
@@ -25,7 +25,7 @@ const VideoBoxes: FunctionComponent = () => {
     const { x, y } = useSize(count, AR)
 
     return (
-        <div className={container}>
+        <div style={{ backgroundColor: theme.semanticColors.bodyBackground }} className={container}>
             <div className={containerInner}>
                 {remoteStreams.map(stream => (
                     <Stack

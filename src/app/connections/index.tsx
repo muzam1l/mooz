@@ -1,6 +1,7 @@
 import { useCallback, useEffect } from 'react'
 import type { FunctionComponent } from 'react'
 import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil'
+import toast from '../../comps/toast'
 import Peer from './peer'
 import {
     Connection,
@@ -45,6 +46,8 @@ const Connections: FunctionComponent = () => {
 
     const onPersonLeft = useCallback(
         ({ sessionId }) => {
+            const conn = connections.find(c => c.partnerId === sessionId)
+            toast(`${conn?.partnerName} left the meeting`)
             // setConnections(connections.filter(p => p.partnerId !== socketId))
             removeConnections(connections.filter(c => c.partnerId === sessionId))
         },
@@ -75,7 +78,7 @@ const Connections: FunctionComponent = () => {
     return (
         <>
             {connections.map(conn => (
-                <Peer key={conn.partnerId} initiator={conn.initiator} partnerId={conn.partnerId} />
+                <Peer partnerName={conn.partnerName} key={conn.partnerId} initiator={conn.initiator} partnerId={conn.partnerId} />
             ))}
         </>
     )

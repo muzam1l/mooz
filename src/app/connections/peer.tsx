@@ -12,6 +12,7 @@ import {
     Message,
 } from '../../atoms'
 import { MoozPeer } from '../../react-app-env'
+import toast, { Timeout, ToastType } from '../../comps/toast'
 
 interface SignalMessage {
     from: string
@@ -20,6 +21,23 @@ interface SignalMessage {
 
 interface PeerProps extends Peer.Options {
     partnerId: string
+    partnerName?: string
+}
+
+type ErrorCodes =
+    | 'ERR_WEBRTC_SUPPORT'
+    | 'ERR_CREATE_OFFER'
+    | 'ERR_CREATE_ANSWER'
+    | 'ERR_SET_LOCAL_DESCRIPTION'
+    | 'ERR_SET_REMOTE_DESCRIPTION'
+    | 'ERR_ADD_ICE_CANDIDATE'
+    | 'ERR_ICE_CONNECTION_FAILURE'
+    | 'ERR_SIGNALING'
+    | 'ERR_DATA_CHANNEL'
+    | 'ERR_CONNECTION_FAILURE'
+
+interface PeerError {
+    code: ErrorCodes
 }
 
 const createSdpTransform = (bitrate: number) => (sdp: string) =>
@@ -28,7 +46,7 @@ const createSdpTransform = (bitrate: number) => (sdp: string) =>
 const PeerComponent: FunctionComponent<PeerProps> = props => {
     const addMessage = useSetRecoilState(addMessageSelector)
     const preferences = useRecoilValue(preferencesState)
-    const { partnerId, ...opts } = props
+    const { partnerId, partnerName, ...opts } = props
     const [remoteStreams, setRemoteStreams] = useRecoilState(remoteStreamsState)
     const remoteStreamRef = useRef(new MediaStream())
     const userStream = useRecoilValue(userStreamState)
@@ -48,10 +66,10 @@ const PeerComponent: FunctionComponent<PeerProps> = props => {
         const peer = peerRef.current as Peer.Instance
         const moozPeer: MoozPeer = { peer, partnerId }
         if (!window.moozPeers) window.moozPeers = [moozPeer]
-        
+
         // remove old copy
         window.moozPeers = window.moozPeers.filter(p => p.partnerId !== partnerId)
-            
+
         // update
         window.moozPeers.push(moozPeer)
     }
@@ -98,7 +116,21 @@ const PeerComponent: FunctionComponent<PeerProps> = props => {
             }
         }
         const onConnected = () => {
-            console.log('Conneted')
+            toast(`Connected with peer ${partnerName}`, { type: ToastType.success })
+        }
+        const onClose = () => {
+            toast(`Connection closed with peer ${partnerName}`, { type: ToastType.severeWarning })
+        }
+        const onError = (err: PeerError) => {
+            if (err.code === 'ERR_WEBRTC_SUPPORT') {
+                toast(`No WebRTC support, are you on grandpa's computer?`, {
+                    type: ToastType.error,
+                })
+            } else if (err.code === 'ERR_CONNECTION_FAILURE') {
+                toast(`WebRTC connection failure`, {
+                    type: ToastType.error,
+                })
+            }
         }
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const onLocalSignal = (signal: any) => {
@@ -116,10 +148,15 @@ const PeerComponent: FunctionComponent<PeerProps> = props => {
                         mine: false,
                     }
                     addMessage([msg])
-                    // TODO toast
+                    toast(`New message from ${msg.author}: ${msg.text}`, {
+                        type: ToastType.info,
+                    })
                 }
             } catch (err) {
-                // console.error('Data error', err)
+                toast(`Peer data error`, {
+                    type: ToastType.error,
+                    autoClose: Timeout.SHORT,
+                })
             }
         }
 
@@ -127,6 +164,8 @@ const PeerComponent: FunctionComponent<PeerProps> = props => {
         peer.on('signal', onLocalSignal)
         peer.on('data', onDataRecieved)
         peer.on('connect', onConnected)
+        peer.on('close', onClose)
+        peer.on('error', onError)
 
         socket.on('message', onMessageRecieved)
 
@@ -135,10 +174,12 @@ const PeerComponent: FunctionComponent<PeerProps> = props => {
             peer.off('signal', onLocalSignal)
             peer.off('connect', onConnected)
             peer.off('data', onDataRecieved)
+            peer.off('close', onClose)
+            peer.off('error', onError)
 
             socket.off('message', onMessageRecieved)
         }
-    }, [onRemoteStream, socket, partnerId, addMessage])
+    }, [onRemoteStream, socket, partnerId, addMessage, partnerName])
 
     useEffect(() => {
         const peer = peerRef.current as Peer.Instance

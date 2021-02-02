@@ -8,6 +8,7 @@ import {
     currentCameraIdState,
     currentMicIdState,
 } from '../../atoms'
+import toast, { ToastType } from '../../comps/toast'
 
 interface UserMediaReturn {
     startUserMedia: (device?: MediaDeviceInfo) => Promise<void>
@@ -128,8 +129,7 @@ export const useUserMedia = (): UserMediaReturn => {
                 }
                 updateDeviceList()
             } catch (error) {
-                // TODO handle errors in UI
-                console.error('Error accessing media devices.', error)
+                toast('Error starting user media', { type: ToastType.error })
             }
         },
         [setUserStream, userStream, updateDeviceList, setCurrentCameraId, setCurrentMicId],
@@ -202,7 +202,7 @@ export const useDisplayMedia = (): DisplayMediaReturn => {
             setDisplayMedia(stream)
             setStatus('on')
         } catch (err) {
-            console.error(err)
+            toast('Error starting display media', { type: ToastType.error })
         }
     }, [setDisplayMedia])
     const stop = useCallback(async () => {
@@ -211,7 +211,7 @@ export const useDisplayMedia = (): DisplayMediaReturn => {
             setDisplayMedia(null)
             setStatus('off')
         } catch (err) {
-            console.error(err)
+            toast('Error stopping display media', { type: ToastType.error })
         }
     }, [displayMedia, setDisplayMedia])
 

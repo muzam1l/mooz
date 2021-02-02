@@ -1,5 +1,12 @@
-import { FontSizes, FontWeights, makeStyles, mergeStyles, mergeStyleSets, SharedColors } from "@fluentui/react"
-import { CSSProperties } from "react"
+import {
+    FontSizes,
+    FontWeights,
+    makeStyles,
+    mergeStyles,
+    mergeStyleSets,
+    SharedColors,
+} from '@fluentui/react'
+import { CSSProperties } from 'react'
 
 export const fluid = mergeStyles({
     width: '100%',
@@ -32,13 +39,13 @@ export const messages = mergeStyleSets({
     },
 })
 
-
 export const useMessageStyles = makeStyles(theme => ({
     container: {
         width: '100%',
         margin: '.25em 0',
         display: 'flex',
         flexDirection: 'row',
+        position: 'relative',
     },
     message: {
         backgroundColor: theme.palette.neutralQuaternary,
@@ -54,7 +61,10 @@ export const useMessageStyles = makeStyles(theme => ({
         width: '200px',
         textOverflow: 'ellipsis',
     },
-    text: {},
+    text: {
+        maxWidth: '100%',
+        wordBreak: 'break-word',
+    },
 }))
 
 export const myMessageStyle: CSSProperties = {

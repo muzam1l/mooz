@@ -1,5 +1,6 @@
-import type { FunctionComponent } from 'react'
+import { FunctionComponent, useEffect } from 'react'
 import { Stack, Text, Pivot, PivotItem, IPivotStyles } from '@fluentui/react'
+import fscreen from 'fscreen'
 import VideoPreview from './preview'
 import CreateMeeting from './create'
 import JoinMeeting from './join'
@@ -27,6 +28,9 @@ const Landing: FunctionComponent = () => {
         defaultKey = 'join'
         defaultId = match.groups?.id
     }
+    useEffect(() => {
+        if (fscreen.fullscreenElement) fscreen.exitFullscreen()
+    }, [])
     return (
         <Stack className={container} horizontalAlign="center">
             <Stack.Item className={containerInner}>

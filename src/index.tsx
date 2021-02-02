@@ -1,11 +1,22 @@
-import React, { FunctionComponent, lazy, Suspense, useEffect } from 'react'
+import React, {
+    FunctionComponent,
+    lazy,
+    Suspense,
+    useEffect,
+    ReactNode,
+    useRef,
+    ReactText,
+} from 'react'
 import ReactDOM from 'react-dom'
 import { initializeIcons, mergeStyles, Spinner } from '@fluentui/react'
 import { RecoilRoot, useRecoilState, useRecoilValue } from 'recoil'
+import { ToastContainer, Slide } from 'react-toastify'
+import toast, { toastClasses, dismissToast, Timeout } from './comps/toast'
 import Landing from './landing'
 import reportWebVitals from './reportWebVitals'
 import { DebugObserver, roomState, socketState, Room } from './atoms'
 import ThemeProvider from './utils/theme/theme-context'
+import 'react-toastify/dist/ReactToastify.css'
 
 const AppImport = import('./app') // preloading
 const App = lazy(() => AppImport)
@@ -19,23 +30,46 @@ const spinner = mergeStyles({
 const Eagle: FunctionComponent = () => {
     const socket = useRecoilValue(socketState)
     const [room, setRoom] = useRecoilState(roomState)
-    // const [loading, setLoading] = useState(false)
-
+    const connectToast = useRef<ReactText>()
     useEffect(() => {
         socket.on('joined_room', (r: Room) => {
+            const name = r.name || `by ${r.created_by}` || `with id ${r.id}`
             setRoom(r)
+            toast(`Joined room ${name}`)
         })
-        // socket.on('disconnect', () => {
-        //     toast('Reconnecting...', Timeot.PERSIST)
-        // })
-        // socket.on('connect', () => {
-        //     toast('Connected!', Timeout.SHORT)
-        // })
+        socket.on('disconnect', () => {
+            connectToast.current = toast('Reconnecting socket, chill!', { autoClose: Timeout.PERSIST })
+        })
+        socket.on('connect', () => {
+            toast('Socket connected!', { autoClose: Timeout.SHORT })
+            if (connectToast.current) dismissToast(connectToast.current)
+            connectToast.current = undefined
+        })
     }, []) // eslint-disable-line
+    let content: ReactNode
+    if (!room) content = <Landing />
+    else content = <App />
 
-    // if (loading) return <Spinner className={spinner} size={3} />
-    if (!room) return <Landing />
-    return <App />
+    return (
+        <>
+            <ToastContainer
+                bodyClassName={toastClasses.body}
+                toastClassName={toastClasses.container}
+                transition={Slide}
+                position="bottom-left"
+                autoClose={Timeout.MEDIUM}
+                closeOnClick={false}
+                closeButton={false}
+                rtl={false}
+                hideProgressBar
+                newestOnTop
+                pauseOnFocusLoss
+                draggable
+                pauseOnHover
+            />
+            {content}
+        </>
+    )
 }
 
 ReactDOM.render(
