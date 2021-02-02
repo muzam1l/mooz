@@ -18,6 +18,11 @@ import { DebugObserver, roomState, socketState, Room } from './atoms'
 import ThemeProvider from './utils/theme/theme-context'
 import 'react-toastify/dist/ReactToastify.css'
 
+// enforce https
+if (window.location.protocol === 'http:' && window.location.hostname !== 'localhost') {
+    window.location.href = `https://${window.location.href.slice(7)}`
+}
+
 const AppImport = import('./app') // preloading
 const App = lazy(() => AppImport)
 initializeIcons()
