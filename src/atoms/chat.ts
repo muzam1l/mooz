@@ -1,4 +1,5 @@
 import { atom, selector, DefaultValue } from 'recoil'
+import toast, { ToastType } from '../comps/toast'
 
 export interface Message {
     id: string
@@ -33,7 +34,8 @@ export const addMessageSelector = selector<Message[]>({
                             const data: PeerData = { message }
                             peer.send(JSON.stringify(data))
                         } catch (err) {
-                            console.error('Error sending message', err)
+                            toast('Message could not be sent, try again', { type: ToastType.error })
+                            set(messagesState, messages) // undo adding newval
                         }
                     })
             }

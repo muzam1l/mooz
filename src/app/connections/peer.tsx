@@ -13,6 +13,7 @@ import {
 } from '../../atoms'
 import { MoozPeer } from '../../react-app-env'
 import toast, { Timeout, ToastType } from '../../comps/toast'
+import { MAX_BITRATE } from '../../utils/settings'
 
 interface SignalMessage {
     from: string
@@ -57,7 +58,7 @@ const PeerComponent: FunctionComponent<PeerProps> = props => {
     if (!peerRef.current) {
         peerRef.current = new Peer({
             // eslint-disable-next-line
-            sdpTransform: createSdpTransform(500) as any, // 250k max bitrate
+            sdpTransform: createSdpTransform(MAX_BITRATE) as any,
             ...opts,
         })
     }

@@ -6,15 +6,10 @@ export const createSocket = (): Socket => {
     const socket = io()
 
     socket.on('connect', () => {
-        console.log('Socket connected', socket.id)
-
         const id = sessionStorage.getItem('ID') || nanoid()
         socket.emit('register', id)
 
         sessionStorage.setItem('ID', id) // for newly generated
-    })
-    socket.on('disconnect', () => {
-        console.log('Socket disconnected')
     })
     // socket.onAny((event, ...args) => {
     //     console.log(`got ${event} with args:`, ...args)

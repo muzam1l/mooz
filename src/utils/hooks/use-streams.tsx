@@ -9,6 +9,7 @@ import {
     currentMicIdState,
 } from '../../atoms'
 import toast, { ToastType } from '../../comps/toast'
+import { VIDEO_HEIGHT, ASPECT_RATIO } from "../settings";
 
 interface UserMediaReturn {
     startUserMedia: (device?: MediaDeviceInfo) => Promise<void>
@@ -39,8 +40,6 @@ export const useUserMedia = (): UserMediaReturn => {
     const start = useCallback(
         async (device?: MediaDeviceInfo) => {
             try {
-                const aspectRatio = 4 / 3
-                const height = 480
                 const config: MediaStreamConstraints = {
                     audio: {
                         deviceId: device?.deviceId,
@@ -49,9 +48,9 @@ export const useUserMedia = (): UserMediaReturn => {
                     },
                     video: {
                         deviceId: device?.deviceId,
-                        height,
-                        width: height * aspectRatio,
-                        aspectRatio,
+                        height: VIDEO_HEIGHT,
+                        width: VIDEO_HEIGHT * ASPECT_RATIO,
+                        aspectRatio: ASPECT_RATIO,
                         noiseSuppression: true,
                         resizeMode: 'none',
                     },
