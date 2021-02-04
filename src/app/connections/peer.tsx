@@ -10,6 +10,7 @@ import {
     userStreamState,
     PeerData,
     Message,
+    displayStreamState,
 } from '../../atoms'
 import { MoozPeer } from '../../react-app-env'
 import toast, { Timeout, ToastType } from '../../comps/toast'
@@ -51,6 +52,7 @@ const PeerComponent: FunctionComponent<PeerProps> = props => {
     const [remoteStreams, setRemoteStreams] = useRecoilState(remoteStreamsState)
     const remoteStreamRef = useRef(new MediaStream())
     const userStream = useRecoilValue(userStreamState)
+    const displayStream = useRecoilValue(displayStreamState)
 
     const socket = useRecoilValue(socketState)
 
@@ -85,21 +87,28 @@ const PeerComponent: FunctionComponent<PeerProps> = props => {
                 t.stop()
                 remoteStream.removeTrack(t)
             })
+            let rStreams = remoteStreams
+
+            // check for display stream
+            const videoTracks = stream.getVideoTracks()
+            if (videoTracks.length > 1) {
+                const displayTrack = videoTracks[1] // TODO 1?
+                stream.removeTrack(displayTrack)
+                const rdStream = new MediaStream([displayTrack])
+                rStreams = rStreams
+                    .filter(r => !r.isDisplay)
+                    .concat({ stream: rdStream, isDisplay: true, partnerId })
+            }
 
             // add new tracks
             stream.getTracks().forEach(t => remoteStream.addTrack(t))
 
             // save if not already
-            const present = remoteStreams.find(s => s.partnerId === partnerId)
+            const present = remoteStreams.find(s => s.partnerId === partnerId && !s.isDisplay)
             if (!present) {
-                setRemoteStreams([
-                    ...remoteStreams,
-                    {
-                        stream: remoteStream,
-                        partnerId,
-                    },
-                ])
+                rStreams.push({ partnerId, stream: remoteStream })
             }
+            setRemoteStreams(rStreams)
         },
         [setRemoteStreams, remoteStreams, partnerId],
     )
@@ -184,23 +193,26 @@ const PeerComponent: FunctionComponent<PeerProps> = props => {
 
     useEffect(() => {
         const peer = peerRef.current as Peer.Instance
+        const tracks = [...userStream?.getTracks() || [], ...displayStream?.getVideoTracks() || []]
+        let stream: MediaStream | undefined
+        if (tracks.length) stream = new MediaStream(tracks)
         try {
-            if (userStream) {
-                peer.addStream(userStream)
+            if (stream) {
+                peer.addStream(stream)
             }
         } catch (err) {
             // console.error(err)
         }
         return () => {
             try {
-                if (userStream) {
-                    peer.removeStream(userStream)
+                if (stream) {
+                    peer.removeStream(stream)
                 }
             } catch (err) {
                 // console.error(err)
             }
         }
-    }, [userStream])
+    }, [userStream, displayStream])
 
     // send proposal to partner to join
     useEffect(() => {

@@ -41,6 +41,7 @@ export const roomState = atom<Room | null>({
 export interface RemoteStream {
     stream: MediaStream
     partnerId: string
+    isDisplay?: boolean
 }
 
 export const remoteStreamsState = atom<RemoteStream[]>({
