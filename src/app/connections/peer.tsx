@@ -1,7 +1,7 @@
 import { FunctionComponent, useCallback, useEffect, useRef } from 'react'
 import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil'
 import Peer from 'simple-peer'
-import { updateBandwidthRestriction } from '../../utils/helpers'
+import { updateBandwidthRestriction, blankVideo } from '../../utils/helpers'
 import {
     addMessageSelector,
     preferencesState,
@@ -78,9 +78,30 @@ const PeerComponent: FunctionComponent<PeerProps> = props => {
     }
     saveInstance()
 
+    const onMetaData = useCallback(
+        (str: string) => {
+            try {
+                const data: PeerData = JSON.parse(str)
+                if (data.metadata?.state === 'NO_STREAM') {
+                    remoteStreamRef.current.getTracks().forEach(t => {
+                        t.stop()
+                        remoteStreamRef.current.removeTrack(t)
+                    })
+                    setRemoteStreams(remoteStreams.filter(r => r.partnerId !== partnerId))
+                }
+                // if (data.metadata?.state === 'ONLY_DISPLAY') {
+
+                // }
+            } catch (err) {
+                // consoel.err
+            }
+        },
+        [remoteStreams, setRemoteStreams, partnerId],
+    )
+
     const onRemoteStream = useCallback(
         (stream: MediaStream) => {
-            // console.log('onStream', stream.getTracks())
+            console.log('onStream', stream.getTracks())
             const remoteStream = remoteStreamRef.current
             // remove prev tracks
             remoteStream.getTracks().forEach(t => {
@@ -91,23 +112,41 @@ const PeerComponent: FunctionComponent<PeerProps> = props => {
 
             // check for display stream
             const videoTracks = stream.getVideoTracks()
-            if (videoTracks.length > 1) {
-                const displayTrack = videoTracks[1] // TODO 1?
+            const displayTrack = videoTracks[1] as MediaStreamTrack | undefined // TODO 1?
+            if (displayTrack) {
                 stream.removeTrack(displayTrack)
                 const rdStream = new MediaStream([displayTrack])
 
                 // stop old display stream
                 rStreams.forEach(({ isDisplay, stream: s }) => {
-                    if (isDisplay) s.getTracks().forEach(t => t.stop())
+                    if (isDisplay) {
+                        s.getTracks().forEach(t => {
+                            t.stop()
+                            s.removeTrack(t)
+                        })
+                    }
                 })
-                
+
                 rStreams = rStreams
                     .filter(r => !r.isDisplay)
                     .concat({ stream: rdStream, isDisplay: true, partnerId })
+            } else {
+                // remove display streams from this peer
+                rStreams.forEach(({ isDisplay, stream: s, partnerId: id }) => {
+                    if (isDisplay && id === partnerId) {
+                        s.getTracks().forEach(t => {
+                            t.stop()
+                            s.removeTrack(t)
+                        })
+                    }
+                })
+                rStreams = rStreams.filter(r => !r.isDisplay)
             }
 
             // add new tracks
-            stream.getTracks().forEach(t => remoteStream.addTrack(t))
+            stream.getTracks().forEach(t => {
+                remoteStream.addTrack(t)
+            })
 
             // save if not already
             const present = remoteStreams.find(s => s.partnerId === partnerId && !s.isDisplay)
@@ -136,6 +175,7 @@ const PeerComponent: FunctionComponent<PeerProps> = props => {
         }
         const onClose = () => {
             toast(`Connection closed with peer ${partnerName}`, { type: ToastType.severeWarning })
+            socket.emit('person_left', { sessionId: partnerId })
         }
         const onError = (err: PeerError) => {
             if (err.code === 'ERR_WEBRTC_SUPPORT') {
@@ -179,6 +219,7 @@ const PeerComponent: FunctionComponent<PeerProps> = props => {
         peer.on('stream', onRemoteStream)
         peer.on('signal', onLocalSignal)
         peer.on('data', onDataRecieved)
+        peer.on('data', onMetaData)
         peer.on('connect', onConnected)
         peer.on('close', onClose)
         peer.on('error', onError)
@@ -190,31 +231,45 @@ const PeerComponent: FunctionComponent<PeerProps> = props => {
             peer.off('signal', onLocalSignal)
             peer.off('connect', onConnected)
             peer.off('data', onDataRecieved)
+            peer.off('data', onMetaData)
             peer.off('close', onClose)
             peer.off('error', onError)
 
             socket.off('message', onMessageRecieved)
         }
-    }, [onRemoteStream, socket, partnerId, addMessage, partnerName])
+    }, [
+        onRemoteStream,
+        socket,
+        partnerId,
+        addMessage,
+        partnerName,
+        remoteStreams,
+        setRemoteStreams,
+        onMetaData,
+    ])
 
     useEffect(() => {
         const peer = peerRef.current as Peer.Instance
 
-        const tracks = [...userStream?.getTracks() || [], ...displayStream?.getVideoTracks() || []]
-        let stream: MediaStream | undefined
-        if (tracks.length) stream = new MediaStream(tracks)
+        const displayVideoTracks = displayStream?.getVideoTracks()
+        const tracks = [...(userStream?.getTracks() || []), ...(displayVideoTracks || [])]
+        // hack so that the other end detects display stream
+        if (displayVideoTracks?.length && !userStream?.getVideoTracks().length) {
+            tracks.unshift(blankVideo())
+        }
+        const stream = new MediaStream(tracks)
         try {
-            if (stream) {
-                peer.addStream(stream)
+            if (!tracks.length) {
+                const msg: PeerData = { metadata: { state: 'NO_STREAM' } }
+                peer.send(JSON.stringify(msg))
             }
+            peer.addStream(stream)
         } catch (err) {
             // console.error(err)
         }
         return () => {
             try {
-                if (stream) {
-                    peer.removeStream(stream)
-                }
+                peer.removeStream(stream)
             } catch (err) {
                 // console.error(err)
             }

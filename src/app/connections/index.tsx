@@ -47,7 +47,7 @@ const Connections: FunctionComponent = () => {
     const onPersonLeft = useCallback(
         ({ sessionId }) => {
             const conn = connections.find(c => c.partnerId === sessionId)
-            toast(`${conn?.partnerName} left the meeting`)
+            if (conn) toast(`${conn?.partnerName} left the meeting`)
             // setConnections(connections.filter(p => p.partnerId !== socketId))
             removeConnections(connections.filter(c => c.partnerId === sessionId))
         },
@@ -78,7 +78,12 @@ const Connections: FunctionComponent = () => {
     return (
         <>
             {connections.map(conn => (
-                <Peer partnerName={conn.partnerName} key={conn.partnerId} initiator={conn.initiator} partnerId={conn.partnerId} />
+                <Peer
+                    partnerName={conn.partnerName}
+                    key={conn.partnerId}
+                    initiator={conn.initiator}
+                    partnerId={conn.partnerId}
+                />
             ))}
         </>
     )

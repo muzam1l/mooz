@@ -6,6 +6,7 @@ export const container = mergeStyles({
     height: 'calc(100vh - 40px)',
     display: 'flex',
     overflowY: 'auto',
+    width: '100%',
 })
 export const gridContainer = mergeStyles({
     display: 'flex',
@@ -14,6 +15,7 @@ export const gridContainer = mergeStyles({
     justifyContent: 'center',
     alignItems: 'center',
     flexWrap: 'wrap',
+    width: '100%'
 })
 
 export const mediaContainer = mergeStyles({

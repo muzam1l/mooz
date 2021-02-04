@@ -1,7 +1,7 @@
 import type { FunctionComponent } from 'react'
 import { Stack, Toggle, Label, useTheme } from '@fluentui/react'
-import { useRecoilState } from 'recoil'
-import { userStreamState } from '../atoms'
+import { useRecoilState, useRecoilValue } from 'recoil'
+import { currentCameraIdState, currentMicIdState, userStreamState } from '../atoms'
 
 import Video from '../comps/video'
 import { mr4, placeholder, preview } from './styles'
@@ -9,8 +9,8 @@ import { useUserMedia } from '../utils/hooks/use-streams'
 
 const VideoPreview: FunctionComponent = () => {
     const { startUserMedia, stopUserMedia } = useUserMedia()
-    //  const currentMicId = useRecoilValue(currentMicIdState)
-    //  const currentCameraId = useRecoilValue(currentCameraIdState)
+    const currentMicId = useRecoilValue(currentMicIdState)
+    const currentCameraId = useRecoilValue(currentCameraIdState)
     const theme = useTheme()
     const [userStream] = useRecoilState(userStreamState)
     return (
@@ -23,6 +23,7 @@ const VideoPreview: FunctionComponent = () => {
                             if (checked) startUserMedia({ kind: 'audioinput' } as MediaDeviceInfo)
                             else stopUserMedia('audioinput')
                         }}
+                        defaultChecked={!!currentMicId}
                         // checked={!!currentMicId}
                         inlineLabel
                         label="Audio"
@@ -35,6 +36,7 @@ const VideoPreview: FunctionComponent = () => {
                             else stopUserMedia('videoinput')
                         }}
                         // checked={!!currentCameraId}
+                        defaultChecked={!!currentCameraId}
                         inlineLabel
                         label="Video"
                         onText="On"

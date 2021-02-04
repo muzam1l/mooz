@@ -42,6 +42,7 @@ const VideoBoxes: FunctionComponent = () => {
                 <div className={gridContainer}>
                     {remoteStreams.map(({ stream }) => (
                         <Stack
+                            grow={1}
                             key={stream.id}
                             style={{
                                 height: y,

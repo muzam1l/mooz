@@ -5,7 +5,7 @@ import NodeCache from 'node-cache'
 // @ts-ignore
 import gzipStatic from 'connect-gzip-static'
 import finalhandler from 'finalhandler'
-import { resolve } from "path";
+import { resolve } from 'path'
 
 const serve = gzipStatic(resolve(__dirname, '../build'))
 
@@ -95,7 +95,6 @@ io.on('connection', (socket: Socket) => {
 
     socket.on('leave_room', () => {
         try {
-            // socket should be just be in one room
             socket.rooms.forEach(room => {
                 if (room === socket.id) return
 
@@ -112,6 +111,32 @@ io.on('connection', (socket: Socket) => {
                         if (sockets.size === 0) {
                             // room is now empty, clear the memory reference
                             roomsCache.del(room)
+                        }
+                    })
+            })
+        } catch (err) {
+            console.error('Error leaving room 😂', err)
+        }
+    })
+    // person reports that person left
+    socket.on('person_left', ({ sessionId }: { sessionId: string }) => {
+        try {
+            socket.rooms.forEach(room => {
+                if (room === socket.id) return
+                const { sessionId: mySessionId } = roomsCache.get<Person>(socket.id) || {}
+                if (room === mySessionId) return
+                console.log('Room', room)
+
+                // TODO make leaving persons socket (have to find that) leave rooms it is in
+                io.to(room).emit('person_left', {
+                    sessionId,
+                })
+                io.in(room)
+                    .allSockets()
+                    .then(sockets => {
+                        if (sockets.size === 0) {
+                            // room is now empty, clear the memory reference
+                            if (roomsCache.has(room)) roomsCache.del(room)
                         }
                     })
             })

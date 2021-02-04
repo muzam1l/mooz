@@ -8,8 +8,13 @@ export interface Message {
     mine?: boolean
 }
 
+export interface MetaData {
+    state: 'NO_STREAM' | 'ONLY_DISPLAY'
+}
+
 export interface PeerData {
     message?: Message
+    metadata?: MetaData 
 }
 
 export const messagesState = atom<Message[]>({
