@@ -3,7 +3,7 @@ import { getVideoBoxSize } from '../helpers'
 
 const TOP_BAR_HEIGHT = 40
 
-const useVideoSize = (N = 1, AR = 1): { x: number; y: number } => {
+const useVideoSize = (N = 1, AR = 1): { x: number; y: number, X: number, Y: number } => {
     const [size, setSize] = useState<{ X?: number; Y?: number }>({})
     const [isMobile, setIsMobile] = useState(window.matchMedia('(max-width: 480px)').matches)
 
@@ -46,7 +46,7 @@ const useVideoSize = (N = 1, AR = 1): { x: number; y: number } => {
     // x = isMobile ? X : x
     // y = isMobile ? X / AR : y
 
-    return { x, y }
+    return { x, y, X, Y }
 }
 
 export default useVideoSize

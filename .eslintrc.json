@@ -24,6 +24,7 @@
     "plugins": ["react", "@typescript-eslint"],
     "rules": {
         "react/react-in-jsx-scope": "off",
+        "no-nested-ternary": "off",
         "react/prop-types": "off", // Since we do not use prop-types
         "react/require-default-props": "off", // Since we do not use prop-types
         "react-hooks/rules-of-hooks": "error",

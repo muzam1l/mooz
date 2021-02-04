@@ -8,6 +8,7 @@ import {
     videoDevicesState,
     currentCameraIdState,
     currentMicIdState,
+    remoteStreamsState,
 } from '../../atoms'
 import { useDisplayMedia, useUserMedia } from '../../utils/hooks/use-streams'
 import { LeaveButtonStyles, buttonStyles, containerStyles, lightOption, darkOption } from './styles'
@@ -36,6 +37,8 @@ const MyCommandBar: FunctionComponent<MyCommandBarProps> = ({ onClickPeople, onC
 
     const { isFullscreen } = useFullScreen()
     const onAbort = useAbort()
+
+    const isRemoteDisplay = !!useRecoilValue(remoteStreamsState).find(r => r.isDisplay)
 
     const iconMuted = {
         color: theme.palette.neutralDark,
@@ -122,12 +125,13 @@ const MyCommandBar: FunctionComponent<MyCommandBarProps> = ({ onClickPeople, onC
             key: 'screen',
             text: 'Screen',
             // iconOnly: true,
+            disabled: isRemoteDisplay,
             iconProps: {
                 iconName: 'ScreenCast',
                 style: displayMediaStatus !== 'on' ? iconMuted : {},
             },
             tooltipHostProps: {
-                content: displayMediaStatus === 'on' ? 'Stop sharing' : 'Share your screen',
+                content: displayMediaStatus === 'on' ? 'Stop sharing' : (!isRemoteDisplay) ? 'Share your screen': "Someone's already sharing screen",
                 delay: 0,
             },
             onClick: () => {

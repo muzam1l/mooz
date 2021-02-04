@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react'
-import { useRecoilState, useSetRecoilState } from 'recoil'
+import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil'
 import {
     audioDevicesState,
     displayStreamState,
@@ -7,9 +7,10 @@ import {
     videoDevicesState,
     currentCameraIdState,
     currentMicIdState,
+    remoteStreamsState,
 } from '../../atoms'
 import toast, { ToastType } from '../../comps/toast'
-import { VIDEO_HEIGHT, ASPECT_RATIO } from "../settings";
+import { VIDEO_HEIGHT, ASPECT_RATIO } from '../settings'
 
 interface UserMediaReturn {
     startUserMedia: (device?: MediaDeviceInfo) => Promise<void>
@@ -190,9 +191,11 @@ interface DisplayMediaReturn {
 export const useDisplayMedia = (): DisplayMediaReturn => {
     const [displayMedia, setDisplayMedia] = useRecoilState(displayStreamState)
     const [status, setStatus] = useState<Status>('default')
+    const isRemoteDisplay = !!useRecoilValue(remoteStreamsState).find(r => r.isDisplay)
 
     const start = useCallback(async () => {
         try {
+            if (isRemoteDisplay) throw Error('No multiple display streams allowed')
             // BUG No Ts definition for getDisplayMedia
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const stream = await (navigator.mediaDevices as any).getDisplayMedia({
@@ -203,7 +206,7 @@ export const useDisplayMedia = (): DisplayMediaReturn => {
         } catch (err) {
             toast('Error starting display media', { type: ToastType.error })
         }
-    }, [setDisplayMedia])
+    }, [setDisplayMedia, isRemoteDisplay])
     const stop = useCallback(async () => {
         try {
             displayMedia?.getTracks().forEach(track => track.stop())

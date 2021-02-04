@@ -95,6 +95,12 @@ const PeerComponent: FunctionComponent<PeerProps> = props => {
                 const displayTrack = videoTracks[1] // TODO 1?
                 stream.removeTrack(displayTrack)
                 const rdStream = new MediaStream([displayTrack])
+
+                // stop old display stream
+                rStreams.forEach(({ isDisplay, stream: s }) => {
+                    if (isDisplay) s.getTracks().forEach(t => t.stop())
+                })
+                
                 rStreams = rStreams
                     .filter(r => !r.isDisplay)
                     .concat({ stream: rdStream, isDisplay: true, partnerId })
@@ -106,7 +112,7 @@ const PeerComponent: FunctionComponent<PeerProps> = props => {
             // save if not already
             const present = remoteStreams.find(s => s.partnerId === partnerId && !s.isDisplay)
             if (!present) {
-                rStreams.push({ partnerId, stream: remoteStream })
+                rStreams = rStreams.concat({ partnerId, stream: remoteStream })
             }
             setRemoteStreams(rStreams)
         },
@@ -193,6 +199,7 @@ const PeerComponent: FunctionComponent<PeerProps> = props => {
 
     useEffect(() => {
         const peer = peerRef.current as Peer.Instance
+
         const tracks = [...userStream?.getTracks() || [], ...displayStream?.getVideoTracks() || []]
         let stream: MediaStream | undefined
         if (tracks.length) stream = new MediaStream(tracks)

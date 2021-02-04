@@ -1,45 +1,88 @@
-import { FunctionComponent } from 'react'
+import { FunctionComponent, useEffect, useState } from 'react'
 import { Stack, Modal, ContextualMenu, useTheme } from '@fluentui/react'
 import { useRecoilValue } from 'recoil'
 import {
     container,
-    containerInner,
+    gridContainer,
     userMediaContainer,
     displayMediaContainer,
     modalStyles,
+    pinnedContainer,
+    sideList,
 } from './styles'
 import useSize from '../../utils/hooks/use-video-size'
-import { userStreamState, displayStreamState, remoteStreamsState } from '../../atoms'
+import { userStreamState, displayStreamState, remoteStreamsState, RemoteStream } from '../../atoms'
 import VideoBox from '../../comps/video'
 
 const AR = 4 / 3
+const SIDE_LIST_WIDTH = 200
 
 const VideoBoxes: FunctionComponent = () => {
     const theme = useTheme()
 
     const userMedia = useRecoilValue(userStreamState)
     const displayMedia = useRecoilValue(displayStreamState)
-    const remoteStreams = useRecoilValue(remoteStreamsState).map(s => s.stream)
+    const remoteStreams = useRecoilValue(remoteStreamsState)
 
-    const count = remoteStreams.length
-    const { x, y } = useSize(count, AR)
+    const [pinnedItem, setPinnedItem] = useState<RemoteStream>()
+
+    const remoteDisplay = remoteStreams.find(r => r.isDisplay)
+
+    useEffect(() => {
+        if (remoteDisplay) setPinnedItem(remoteDisplay)
+        else setPinnedItem(undefined)
+    }, [remoteDisplay])
+
+    const { x, y, X } = useSize(remoteStreams.length, AR)
 
     return (
         <div style={{ backgroundColor: theme.semanticColors.bodyBackground }} className={container}>
-            <div className={containerInner}>
-                {remoteStreams.map(stream => (
+            {/* Grid view */}
+            {!pinnedItem && (
+                <div className={gridContainer}>
+                    {remoteStreams.map(({ stream }) => (
+                        <Stack
+                            key={stream.id}
+                            style={{
+                                height: y,
+                                maxWidth: x,
+                            }}
+                        >
+                            <VideoBox stream={stream} />
+                        </Stack>
+                    ))}
+                </div>
+            )}
+            {/* Pinned View */}
+            {pinnedItem && (
+                <div className={pinnedContainer}>
                     <Stack
-                        key={stream.id}
+                        disableShrink
+                        verticalFill
+                        key={pinnedItem.stream.id}
                         style={{
-                            height: y,
-                            maxWidth: x,
-                            // backgroundColor: theme.palette.neutralLight,
+                            width: X > 768 ? X - SIDE_LIST_WIDTH : X,
                         }}
                     >
-                        <VideoBox stream={stream} />
+                        <VideoBox stream={pinnedItem.stream} />
                     </Stack>
-                ))}
-            </div>
+                    <div className={sideList}>
+                        {remoteStreams
+                            .filter(r => !r.isDisplay || r.partnerId !== pinnedItem.partnerId)
+                            .map(({ stream }) => (
+                                <Stack
+                                    key={stream.id}
+                                    style={{
+                                        height: SIDE_LIST_WIDTH / AR,
+                                        width: SIDE_LIST_WIDTH,
+                                    }}
+                                >
+                                    <VideoBox stream={stream} />
+                                </Stack>
+                            ))}
+                    </div>
+                </div>
+            )}
 
             <div className={userMediaContainer} id="user-media-container" />
             <div className={displayMediaContainer} id="display-media-container" />

@@ -7,7 +7,7 @@ export const container = mergeStyles({
     display: 'flex',
     overflowY: 'auto',
 })
-export const containerInner = mergeStyles({
+export const gridContainer = mergeStyles({
     display: 'flex',
     margin: 'auto',
     flexDirection: 'row',
@@ -42,3 +42,30 @@ export const modalStyles: Partial<IModalStyles> = {
         display: 'flex',
     },
 }
+
+export const pinnedContainer = mergeStyles({
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '100%',
+    '@media (max-width: 768px)': {
+        flexDirection: 'column',
+    },
+})
+export const sideList = mergeStyles({
+    display: 'flex',
+    flexDirection: 'column',
+    height: '100%',
+    flexShrink: 0,
+    width: 'min-content',
+    overflowY: 'auto',
+    alignItems: 'center',
+    justifyContent: 'center',
+    '@media (max-width: 768px)': {
+        flexDirection: 'row',
+        width: '100%',
+        height: 'min-content',
+        overflowX: 'auto',
+    },
+})
