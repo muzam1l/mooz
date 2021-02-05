@@ -101,7 +101,7 @@ const PeerComponent: FunctionComponent<PeerProps> = props => {
 
     const onRemoteStream = useCallback(
         (stream: MediaStream) => {
-            console.log('onStream', stream.getTracks())
+            // console.log('onStream', stream.getTracks())
             const remoteStream = remoteStreamRef.current
             // remove prev tracks
             remoteStream.getTracks().forEach(t => {

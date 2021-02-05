@@ -45,7 +45,7 @@ interface Person {
 io.on('connection', (socket: Socket) => {
     console.log('socket connected', socket.id)
 
-    socket.on('register', sessionId => {
+    socket.on('register', ({ sessionId, roomId }: { sessionId: string; roomId?: string }) => {
         roomsCache.set<Person>(socket.id, { sessionId })
 
         /**
@@ -53,6 +53,14 @@ io.on('connection', (socket: Socket) => {
          This allows for extra layer above socket id so client just communicates with session id
         */
         socket.join(sessionId)
+
+        // join rooms person is already in
+        if (roomId) {
+            socket.join(roomId)
+            io.to(roomId).emit('person_reconnected', {
+                sessionId,
+            })
+        }
     })
 
     socket.on('create_room', (room: Room, cb) => {

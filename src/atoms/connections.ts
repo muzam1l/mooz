@@ -1,16 +1,9 @@
-import { nanoid } from 'nanoid'
 import { atom, DefaultValue, selector } from 'recoil'
 import { Socket, io } from 'socket.io-client'
 
 export const createSocket = (): Socket => {
     const socket = io()
-
-    socket.on('connect', () => {
-        const id = sessionStorage.getItem('ID') || nanoid()
-        socket.emit('register', id)
-
-        sessionStorage.setItem('ID', id) // for newly generated
-    })
+    
     // socket.onAny((event, ...args) => {
     //     console.log(`got ${event} with args:`, ...args)
     // })

@@ -11,6 +11,7 @@ import ReactDOM from 'react-dom'
 import { initializeIcons, mergeStyles, Spinner } from '@fluentui/react'
 import { RecoilRoot, useRecoilState, useRecoilValue } from 'recoil'
 import { ToastContainer, Slide } from 'react-toastify'
+import { nanoid } from 'nanoid'
 import toast, { toastClasses, dismissToast, Timeout } from './comps/toast'
 import Landing from './landing'
 import reportWebVitals from './reportWebVitals'
@@ -46,8 +47,12 @@ const Eagle: FunctionComponent = () => {
             connectToast.current = toast('Reconnecting socket, chill!', { autoClose: Timeout.PERSIST })
         })
         socket.on('connect', () => {
+            const id = sessionStorage.getItem('ID') || nanoid()
+            socket.emit('register', { sessionId: id, roomId: room?.id })
+            sessionStorage.setItem('ID', id)
+
             toast('Socket connected!', { autoClose: Timeout.SHORT })
-            if (connectToast.current) dismissToast(connectToast.current)
+        if (connectToast.current) dismissToast(connectToast.current)
             connectToast.current = undefined
         })
     }, []) // eslint-disable-line
