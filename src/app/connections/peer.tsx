@@ -1,7 +1,7 @@
 import { FunctionComponent, useCallback, useEffect, useRef } from 'react'
 import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil'
 import Peer from 'simple-peer'
-import { updateBandwidthRestriction, blankVideo } from '../../utils/helpers'
+import { transformSdp, blankVideo } from '../../utils/helpers'
 import {
     addMessageSelector,
     preferencesState,
@@ -14,7 +14,6 @@ import {
 } from '../../atoms'
 import { MoozPeer } from '../../react-app-env'
 import toast, { Timeout, ToastType } from '../../comps/toast'
-import { MAX_BITRATE } from '../../utils/settings'
 
 interface SignalMessage {
     from: string
@@ -42,8 +41,7 @@ interface PeerError {
     code: ErrorCodes
 }
 
-const createSdpTransform = (bitrate: number) => (sdp: string) =>
-    updateBandwidthRestriction(sdp, bitrate)
+const createSdpTransform = () => (sdp: string) => transformSdp(sdp)
 
 const PeerComponent: FunctionComponent<PeerProps> = props => {
     const addMessage = useSetRecoilState(addMessageSelector)
@@ -60,7 +58,7 @@ const PeerComponent: FunctionComponent<PeerProps> = props => {
     if (!peerRef.current) {
         peerRef.current = new Peer({
             // eslint-disable-next-line
-            sdpTransform: createSdpTransform(MAX_BITRATE) as any,
+            sdpTransform: createSdpTransform() as any,
             ...opts,
         })
     }

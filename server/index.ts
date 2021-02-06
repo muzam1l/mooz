@@ -129,13 +129,15 @@ io.on('connection', (socket: Socket) => {
     // person reports that person left
     socket.on('person_left', ({ sessionId }: { sessionId: string }) => {
         try {
+            io.to(sessionId).emit('leave_room')
+            // ALERT exposes memory leak as it does not leave socketio room
+            // TODO make leaving persons socket (have to find that) leave rooms it is in
+
             socket.rooms.forEach(room => {
                 if (room === socket.id) return
                 const { sessionId: mySessionId } = roomsCache.get<Person>(socket.id) || {}
                 if (room === mySessionId) return
-                console.log('Room', room)
 
-                // TODO make leaving persons socket (have to find that) leave rooms it is in
                 io.to(room).emit('person_left', {
                     sessionId,
                 })
@@ -168,8 +170,8 @@ io.on('connection', (socket: Socket) => {
         })
     })
 
-    socket.on('disconnecting', reason => {
-        const { sessionId } = roomsCache.get(socket.id) as Person
+    socket.on('disconnecting', () => {
+        const { sessionId } = roomsCache.get<Person>(socket.id) || {} 
         roomsCache.del(socket.id)
         socket.rooms.forEach(room => {
             if (room !== socket.id || room !== sessionId) {
@@ -178,35 +180,28 @@ io.on('connection', (socket: Socket) => {
                         sessionId,
                     })
                 }
-                io.in(room)
-                    .allSockets()
-                    .then(sockets => {
-                        if (sockets.size === 0) {
-                            roomsCache.del(room)
-                        }
-                    })
             }
         })
     })
 })
-const PATH_REGEX = /^\/room\/(?<id>[A-Za-z0-9_-]+)/
-const ID_REGEX = /^(?<id>[A-Za-z0-9_-]+)/
+const PATH_REGEX = /^\/room\/(?<id>[A-Za-z0-9_-]+$)/
+const ID_REGEX = /^(?<id>[A-Za-z0-9_-]+$)/
 
 function getRoomFromLink(link: string): Room {
     let id: string | undefined
-    if (link.match(ID_REGEX)?.groups?.id) {
-        // link is already a id
-        id = link
-    } else {
+    try {
         const url = new URL(link) // throws if url is invalid
         /* This does not care about url host so any host is valid as long as that follows below pathname pattern
            /room/<room_id>
            room_id regex = ([A-Za-z0-9_-])+ (same as nanoid character set)
         */
         id = url.pathname.match(PATH_REGEX)?.groups?.id
+    } catch (error) {
+        // try link as id  
+        id = link.match(ID_REGEX)?.groups?.id
     }
 
-    if (!id) throw Error('Invalid link format')
+    if (!id) throw Error('Cannot parse room id')
     if (!roomsCache.has(id)) throw Error('Room not found')
 
     return roomsCache.get(id) as Room

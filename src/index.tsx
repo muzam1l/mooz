@@ -38,24 +38,40 @@ const Eagle: FunctionComponent = () => {
     const [room, setRoom] = useRecoilState(roomState)
     const connectToast = useRef<ReactText>()
     useEffect(() => {
-        socket.on('joined_room', (r: Room) => {
+        const onRoomJoined = (r: Room) => {
             const name = r.name || `by ${r.created_by}` || `with id ${r.id}`
+            window.history.pushState({}, 'Mooz', `/room/${r.id}`)
             setRoom(r)
             toast(`Joined room ${name}`)
-        })
-        socket.on('disconnect', () => {
-            connectToast.current = toast('Reconnecting socket, chill!', { autoClose: Timeout.PERSIST })
-        })
-        socket.on('connect', () => {
+        }
+        const onLeaveRoom = () => {
+            setRoom(null)
+        }
+        const onDisconnect = () => {
+            connectToast.current = toast('Reconnecting socket, chill!', {
+                autoClose: Timeout.PERSIST,
+            })
+        }
+        const onConnect = () => {
             const id = sessionStorage.getItem('ID') || nanoid()
             socket.emit('register', { sessionId: id, roomId: room?.id })
             sessionStorage.setItem('ID', id)
 
             toast('Socket connected!', { autoClose: Timeout.SHORT })
-        if (connectToast.current) dismissToast(connectToast.current)
+            if (connectToast.current) dismissToast(connectToast.current)
             connectToast.current = undefined
-        })
-    }, []) // eslint-disable-line
+        }
+        socket.on('joined_room', onRoomJoined)
+        socket.on('disconnect', onDisconnect)
+        socket.on('connect', onConnect)
+        socket.on('leave_room', onLeaveRoom)
+        return () => {
+            socket.off('joined_room', onRoomJoined)
+            socket.off('disconnect', onDisconnect)
+            socket.off('connect', onConnect)
+            socket.off('leave_room', onLeaveRoom)
+        }
+    }, [setRoom, socket, room])
     let content: ReactNode
     if (!room) content = <Landing />
     else content = <App />
