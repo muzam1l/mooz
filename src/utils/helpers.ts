@@ -55,15 +55,8 @@ export function transformSdp(sdp: string) {
         bandwidth = (bandwidth >>> 0) * 1000
         modifier = 'TIAS'
     }
-    if (sdp.indexOf('b=' + modifier + ':') === -1) {
-        // insert b= after c= line.
-        sdp = sdp.replace(/c=IN (.*)\r\n/, 'c=IN $1\r\nb=' + modifier + ':' + bandwidth + '\r\n')
-    } else {
-        sdp = sdp.replace(
-            new RegExp('b=' + modifier + ':.*\r\n'),
-            'b=' + modifier + ':' + bandwidth + '\r\n',
-        )
-    }
+    sdp = sdp.replace(new RegExp('b=' + modifier + ':.*\r\n'), '')
+    sdp = sdp.replace(/(m=video.*\r\n)/g, `$1b=${modifier}:${bandwidth}\r\n`)
     return sdp
 }
 
