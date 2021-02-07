@@ -127,7 +127,7 @@ const PeerComponent: FunctionComponent<PeerProps> = props => {
 
                 rStreams = rStreams
                     .filter(r => !r.isDisplay)
-                    .concat({ stream: rdStream, isDisplay: true, partnerId })
+                    .concat({ stream: rdStream, isDisplay: true, partnerId, partnerName })
             } else {
                 // remove display streams from this peer
                 rStreams.forEach(({ isDisplay, stream: s, partnerId: id }) => {
@@ -149,11 +149,11 @@ const PeerComponent: FunctionComponent<PeerProps> = props => {
             // save if not already
             const present = remoteStreams.find(s => s.partnerId === partnerId && !s.isDisplay)
             if (!present) {
-                rStreams = rStreams.concat({ partnerId, stream: remoteStream })
+                rStreams = rStreams.concat({ stream: remoteStream, partnerId, partnerName})
             }
             setRemoteStreams(rStreams)
         },
-        [setRemoteStreams, remoteStreams, partnerId],
+        [setRemoteStreams, remoteStreams, partnerId, partnerName],
     )
 
     useEffect(() => {

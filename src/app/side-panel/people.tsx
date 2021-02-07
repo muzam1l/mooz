@@ -26,7 +26,7 @@ const PersonComponent: FunctionComponent<{ item?: Connection; index?: number }> 
     const theme = useTheme()
     if (!item || index === undefined) return null
     const showNotImplemented = () => {
-        toast('Not Implemented', { autoClose: Timeout.SHORT, type: ToastType.severeWarning })
+        toast('Not Implemented yet', { autoClose: Timeout.SHORT, type: ToastType.severeWarning })
     }
     return (
         <>

@@ -40,16 +40,15 @@ const VideoBoxes: FunctionComponent = () => {
             {/* Grid view */}
             {!pinnedItem && (
                 <div className={gridContainer}>
-                    {remoteStreams.map(({ stream }) => (
+                    {remoteStreams.map(({ stream, partnerName }) => (
                         <Stack
-                            grow={1}
                             key={stream.id}
                             style={{
                                 height: y,
                                 maxWidth: x,
                             }}
                         >
-                            <VideoBox stream={stream} />
+                            <VideoBox label={partnerName} stream={stream} />
                         </Stack>
                     ))}
                 </div>
@@ -65,12 +64,12 @@ const VideoBoxes: FunctionComponent = () => {
                             width: X > 768 ? X - SIDE_LIST_WIDTH : X,
                         }}
                     >
-                        <VideoBox stream={pinnedItem.stream} />
+                        <VideoBox label={pinnedItem.partnerName} stream={pinnedItem.stream} />
                     </Stack>
                     <div className={sideList}>
                         {remoteStreams
                             .filter(r => !r.isDisplay || r.partnerId !== pinnedItem.partnerId)
-                            .map(({ stream }) => (
+                            .map(({ stream, partnerName }) => (
                                 <Stack
                                     key={stream.id}
                                     style={{
@@ -78,7 +77,7 @@ const VideoBoxes: FunctionComponent = () => {
                                         width: SIDE_LIST_WIDTH,
                                     }}
                                 >
-                                    <VideoBox stream={stream} />
+                                    <VideoBox stream={stream} label={partnerName} />
                                 </Stack>
                             ))}
                     </div>
@@ -102,7 +101,7 @@ const VideoBoxes: FunctionComponent = () => {
                         menu: ContextualMenu,
                     }}
                 >
-                    <VideoBox muted stream={displayMedia} />
+                    <VideoBox muted stream={displayMedia} label='You are presenting' noContextualMenu />
                 </Modal>
             )}
             {userMedia && (
@@ -120,7 +119,7 @@ const VideoBoxes: FunctionComponent = () => {
                         menu: ContextualMenu,
                     }}
                 >
-                    <VideoBox muted stream={userMedia} />
+                    <VideoBox muted stream={userMedia} label="You" noContextualMenu />
                 </Modal>
             )}
         </div>

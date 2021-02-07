@@ -1,6 +1,15 @@
-import { keyframes, mergeStyles } from '@fluentui/react'
-import { useEffect, useRef } from 'react'
+import {
+    keyframes,
+    mergeStyles,
+    Label,
+    useTheme,
+    IconButton,
+    ContextualMenu,
+    ContextualMenuItemType,
+} from '@fluentui/react'
+import { useEffect, useRef, useState } from 'react'
 import type { FunctionComponent, VideoHTMLAttributes } from 'react'
+import toast, { Timeout, ToastType } from './toast'
 
 const fadeInAnim = keyframes({
     from: {
@@ -17,16 +26,47 @@ const fadeIn = mergeStyles({
 
 const videoCLassname = mergeStyles({
     display: 'block',
-    width: '100%',
+    maxWidth: '100%',
     height: '100%',
     backgroundColor: 'transparent',
 })
+const videoContainer = mergeStyles({
+    width: '100%',
+    height: '100%',
+    display: 'flex',
+    flexDirection: 'column',
+    position: 'relative',
+})
+const videoLabel = mergeStyles({
+    padding: '.25em .5em',
+})
+const bottomRow = mergeStyles({
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    display: 'flex',
+    flexDirection: 'row',
+    width: '100%',
+    justifyContent: 'space-between',
+    zIndex: 2,
+})
+
 interface VideoBoxProps extends VideoHTMLAttributes<HTMLVideoElement> {
     stream: MediaStream
+    label?: string
+    noContextualMenu?: boolean
 }
 /* eslint-disable jsx-a11y/media-has-caption */
-const VideoBox: FunctionComponent<VideoBoxProps> = ({ stream, ...props }) => {
+const VideoBox: FunctionComponent<VideoBoxProps> = ({
+    stream,
+    label,
+    noContextualMenu,
+    ...props
+}) => {
+    const theme = useTheme()
     const videoElem = useRef<HTMLVideoElement | null>(null)
+    const [mouseEvent, setMouseEvent] = useState<MouseEvent | null>(null)
+
     useEffect(() => {
         const video = videoElem.current
         if (video) {
@@ -39,18 +79,90 @@ const VideoBox: FunctionComponent<VideoBoxProps> = ({ stream, ...props }) => {
         }
     }, [stream, videoElem])
 
+    const showNotImplemented = () => {
+        toast('Not Implemented yet', { autoClose: Timeout.SHORT, type: ToastType.severeWarning })
+    }
+
     return (
-        <video
-            ref={videoElem}
-            className={videoCLassname}
-            controls={false}
-            playsInline
-            autoPlay
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
+        <div
+            onContextMenu={e => {
+                e.preventDefault()
+                // eslint-disable-next-line
+                setMouseEvent(e as any)
+            }}
+            className={videoContainer}
         >
-            Seriously, How old are you and your browser!
-        </video>
+            <video
+                title={label}
+                ref={videoElem}
+                className={videoCLassname}
+                controls={false}
+                playsInline
+                autoPlay
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...props}
+            >
+                Seriously, How old are you and your browser!
+            </video>
+            <div className={bottomRow}>
+                {label && (
+                    <Label
+                        style={{ backgroundColor: theme.palette.neutralLighter }}
+                        className={videoLabel}
+                    >
+                        {label}
+                    </Label>
+                )}
+                {!noContextualMenu && (
+                    <IconButton
+                        onClick={e => {
+                            // eslint-disable-next-line
+                            setMouseEvent(e as any)
+                        }}
+                        iconProps={{ iconName: 'More' }}
+                        style={{ backgroundColor: theme.palette.neutralLighter }}
+                    />
+                )}
+            </div>
+            {!noContextualMenu && (
+                <ContextualMenu
+                    items={[
+                        {
+                            key: 'header1',
+                            itemType: ContextualMenuItemType.Header,
+                            text: label,
+                        },
+                        {
+                            key: 'mute',
+                            text: 'Mute',
+                            iconProps: { iconName: 'MicOff' },
+                            onClick: showNotImplemented,
+                        },
+                        {
+                            key: 'hide',
+                            text: 'Hide',
+                            iconProps: { iconName: 'VideoOff' },
+                            onClick: showNotImplemented,
+                        },
+                        {
+                            key: 'divider1',
+                            itemType: ContextualMenuItemType.Divider,
+                        },
+                        {
+                            key: 'kick',
+                            text: 'Kick out',
+                            iconProps: { iconName: 'SignOut' },
+                            onClick: showNotImplemented,
+                        },
+                    ]}
+                    onDismiss={() => {
+                        setMouseEvent(null)
+                    }}
+                    hidden={!mouseEvent}
+                    target={mouseEvent}
+                />
+            )}
+        </div>
     )
 }
 
