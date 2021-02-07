@@ -51,6 +51,8 @@ const VideoPreview: FunctionComponent = () => {
                         style={{
                             backgroundColor: theme.palette.neutralLight,
                         }}
+                        label="Media preview"
+                        noContextualMenu
                         muted
                     />
                 ) : (

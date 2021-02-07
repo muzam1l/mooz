@@ -101,7 +101,7 @@ const VideoBoxes: FunctionComponent = () => {
                         menu: ContextualMenu,
                     }}
                 >
-                    <VideoBox muted stream={displayMedia} label='You are presenting' noContextualMenu />
+                    <VideoBox muted stream={displayMedia} label='You are sharing your screen' noContextualMenu />
                 </Modal>
             )}
             {userMedia && (

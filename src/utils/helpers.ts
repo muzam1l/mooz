@@ -1,4 +1,3 @@
-import { BANDWIDTH } from './settings'
 /* eslint-disable @typescript-eslint/naming-convention, no-plusplus */
 export const one = 1
 
@@ -47,8 +46,7 @@ export function getVideoBoxSize(
 }
 
 /* eslint-disable */
-export function transformSdp(sdp: string) {
-    let bandwidth = BANDWIDTH
+export function transformSdp(sdp: string, bandwidth: number) {
     let modifier = 'AS'
     // if (adapter.browserDetails.browser === 'firefox') {
     if (navigator.userAgent.indexOf('Firefox') != -1) {

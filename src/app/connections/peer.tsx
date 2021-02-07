@@ -1,6 +1,7 @@
 import { FunctionComponent, useCallback, useEffect, useRef } from 'react'
 import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil'
 import Peer from 'simple-peer'
+import { MAX_BANDWIDTH, MIN_BANDWIDTH } from '../../utils/settings'
 import { transformSdp, blankVideo } from '../../utils/helpers'
 import {
     addMessageSelector,
@@ -41,7 +42,7 @@ interface PeerError {
     code: ErrorCodes
 }
 
-const createSdpTransform = () => (sdp: string) => transformSdp(sdp)
+const createSdpTransform = (badwidth: number) => (sdp: string) => transformSdp(sdp, badwidth)
 
 const PeerComponent: FunctionComponent<PeerProps> = props => {
     const addMessage = useSetRecoilState(addMessageSelector)
@@ -56,9 +57,12 @@ const PeerComponent: FunctionComponent<PeerProps> = props => {
 
     const peerRef = useRef<Peer.Instance>()
     if (!peerRef.current) {
+        const LEN = (window.moozPeers?.length || 0) + 1
+        let bandwidth = MAX_BANDWIDTH / Math.sqrt(LEN)
+        if (bandwidth < MIN_BANDWIDTH) bandwidth = MIN_BANDWIDTH
         peerRef.current = new Peer({
             // eslint-disable-next-line
-            sdpTransform: createSdpTransform() as any,
+            sdpTransform: createSdpTransform(bandwidth) as any,
             ...opts,
         })
     }
@@ -149,7 +153,7 @@ const PeerComponent: FunctionComponent<PeerProps> = props => {
             // save if not already
             const present = remoteStreams.find(s => s.partnerId === partnerId && !s.isDisplay)
             if (!present) {
-                rStreams = rStreams.concat({ stream: remoteStream, partnerId, partnerName})
+                rStreams = rStreams.concat({ stream: remoteStream, partnerId, partnerName })
             }
             setRemoteStreams(rStreams)
         },

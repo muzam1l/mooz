@@ -18,6 +18,7 @@ import reportWebVitals from './reportWebVitals'
 import { DebugObserver, roomState, socketState, Room } from './atoms'
 import ThemeProvider from './utils/theme/theme-context'
 import 'react-toastify/dist/ReactToastify.css'
+import useAbort from './utils/hooks/use-abort'
 
 // enforce https
 if (window.location.protocol === 'http:' && window.location.hostname !== 'localhost') {
@@ -36,6 +37,7 @@ const spinner = mergeStyles({
 const Eagle: FunctionComponent = () => {
     const socket = useRecoilValue(socketState)
     const [room, setRoom] = useRecoilState(roomState)
+    const onAbort = useAbort()
     const connectToast = useRef<ReactText>()
     useEffect(() => {
         const onRoomJoined = (r: Room) => {
@@ -45,7 +47,7 @@ const Eagle: FunctionComponent = () => {
             toast(`Joined room ${name}`)
         }
         const onLeaveRoom = () => {
-            setRoom(null)
+            onAbort({ noEmit: true })
         }
         const onDisconnect = () => {
             connectToast.current = toast('Reconnecting socket, chill!', {
@@ -71,7 +73,7 @@ const Eagle: FunctionComponent = () => {
             socket.off('connect', onConnect)
             socket.off('leave_room', onLeaveRoom)
         }
-    }, [setRoom, socket, room])
+    }, [setRoom, socket, room, onAbort])
     let content: ReactNode
     if (!room) content = <Landing />
     else content = <App />

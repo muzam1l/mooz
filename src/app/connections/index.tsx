@@ -79,8 +79,8 @@ const Connections: FunctionComponent = () => {
         <>
             {connections.map(conn => (
                 <Peer
-                    partnerName={conn.partnerName}
                     key={conn.partnerId}
+                    partnerName={conn.partnerName}
                     initiator={conn.initiator}
                     partnerId={conn.partnerId}
                 />

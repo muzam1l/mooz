@@ -23,6 +23,7 @@ export const mediaContainer = mergeStyles({
     bottom: 0,
     height: 200 / AR,
     width: 200,
+    zIndex: 100
 })
 
 export const userMediaContainer = mergeStyles(mediaContainer, {

@@ -207,8 +207,8 @@ const MyCommandBar: FunctionComponent<MyCommandBarProps> = ({ onClickPeople, onC
     const farItems: ICommandBarItemProps[] = [
         {
             // eslint-disable-next-line
-            commandBarButtonAs: ({ text, key, onClick }) => (
-                <DefaultButton onClick={onAbort} text={text} key={key} styles={LeaveButtonStyles} />
+            commandBarButtonAs: ({ text, key }) => (
+                <DefaultButton onClick={() => onAbort()} text={text} key={key} styles={LeaveButtonStyles} />
             ),
             key: 'leave',
             text: 'Leave',
