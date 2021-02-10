@@ -20,8 +20,8 @@ import ThemeProvider from './utils/theme/theme-context'
 import 'react-toastify/dist/ReactToastify.css'
 import useAbort from './utils/hooks/use-abort'
 
-// enforce https
-if (window.location.protocol === 'http:' && window.location.hostname !== 'localhost') {
+// enforce https in production
+if (window.location.protocol === 'http:' && process.env.NODE_ENV === 'production') {
     window.location.href = `https://${window.location.href.slice(7)}`
 }
 

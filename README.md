@@ -1,46 +1,87 @@
-# Getting Started with Create React App
+# Mooz
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+WebRTC based video chat app whose name and other stuff is 100% orignal.
+I would write some sexy and sophisticated line, but I have lost it.
 
-## Available Scripts
+# [Demo](https://mooz-app.herokuapp.com)
+TODO A good-looking gif
 
-In the project directory, you can run:
+<small>Heroku server may take some time to wake up after sleep, so first load can be long.</small>
 
-### `npm start`
+# Uses
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+- **`React`** my love.
+- **`Socketio`** for signaling and room management. I don't use `REST` and `Express` at all in this, sue me.
+- **`Fluentui`** for good-looking UI components without writing much CSS and therefore less hairfall.
+- **`Recoil`** for local state management, fuck `Redux`.
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+Pretty known thing for peer-to-peer WebRTC connections but I will still state this for commercial purposes: 
+All connection data like video, audio and messages are tranfered peer to peer without going through server.
 
-### `npm test`
+# Goal
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+Open source peer-to-peer video conferencing app core, easily deployable and extendable for custom use cases. So instead of everyone creating those ugly video chat apps, this can be extended for any extra custom features like, file sharing, session recording, options for Media server based solution and/or encryption, etc.
 
-### `npm run build`
+# Limitations
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+It scales very well in terms of how many rooms can be on server as it is a peer to peer solution, infact a peer doesn't even need to be connected to server once connection is esablished with other peer. However there is a huge natural limitation on how many participants can be in one single room due to bandwidth and processing requirements. Peer-to-peer playes negative role on that front as every peer is sending and recieving data with every peer in a room. This limitation is little overcomed with adaptive bandwidth usage and other optimizations, but core limitation is by design.
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+# Why node-cache instead of database?
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+TODO convince others to believe that it was a good choice here, simple and easy to maintain. 
 
-### `npm run eject`
+# Deploying
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+## Docker
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+This project is split into two containers, one for react front-end which is build and then served with nginx and other for server.
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+### Build images
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+Following commands builds these images respectively.
 
-## Learn More
+[cd <project-root>]
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+`docker build --tag mooz .`
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+`docker build --tag mooz-server ./server`
+
+### Run containers
+
+`docker network create socketio`
+
+`docker run -d --rm -p 80:80 --network socketio --name client mooz`
+
+`docker run -d --rm -p 5000:5000 --network socketio --network-alias server --name server mooz-server`
+
+## Manual
+
+If you dont wan't to use docker, these are the npm commands for every step.
+
+[cd <project-root>]
+
+`npm install` to to install react dependencies. 
+
+`npm run dev` to start development webpack server.
+
+`npm run build` to format, lint and build front-end.
+
+~Then serve static files accordingly~
+
+[cd server]
+
+`npm install` installs Server dependencies.
+
+`npm run dev` to start development server with nodemon (install globally).
+
+`npm run build` transpiles Typescript server file to JavaScript.
+
+`npm run start` starts the Node/Scoket.io server.
+
+# More
+
+Get a life dude!
+
+# More
+
+Still reading? Woowowowoow.

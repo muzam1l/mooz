@@ -3,7 +3,7 @@ import { Socket, io } from 'socket.io-client'
 
 export const createSocket = (): Socket => {
     const socket = io()
-    
+
     // socket.onAny((event, ...args) => {
     //     console.log(`got ${event} with args:`, ...args)
     // })
@@ -92,7 +92,7 @@ export const removeConnectionsSelector = selector<Connection[]>({
             connections.filter(c => !newVal.find(v => v.partnerId === c.partnerId)),
         )
 
-        // remove those peers 
+        // remove those peers
         if (window.moozPeers) {
             window.moozPeers = window.moozPeers.filter(
                 p => !newVal.find(v => v.partnerId === p.partnerId),

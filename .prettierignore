@@ -1,4 +1,4 @@
 node_modules/
 build/
 server/lib
-dist/**/*.js
+server/node_modules

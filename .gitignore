@@ -23,4 +23,5 @@ yarn-debug.log*
 yarn-error.log*
 .eslintcache
 
-server/**/*.js
+server/lib
+server/node_modules

@@ -12,12 +12,15 @@ const useAbort = (): ((arg0?: Args) => void) => {
     const setRoom = useSetRecoilState(roomState)
     const socket = useRecoilValue(socketState)
 
-    const onAbort = useCallback(({ noEmit }: Args = {}) => {
-        removeConnections(connections)
-        setRoom(null)
-        if (!noEmit) socket.emit('leave_room')
-        toast('Room abandoned!, enjoy your lonely life', { type: ToastType.warning })
-    }, [removeConnections, connections, setRoom, socket])
+    const onAbort = useCallback(
+        ({ noEmit }: Args = {}) => {
+            removeConnections(connections)
+            setRoom(null)
+            if (!noEmit) socket.emit('leave_room')
+            toast('Room abandoned!, enjoy your lonely life', { type: ToastType.warning })
+        },
+        [removeConnections, connections, setRoom, socket],
+    )
 
     return onAbort
 }

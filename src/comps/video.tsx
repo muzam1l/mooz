@@ -36,11 +36,11 @@ const videoContainer = mergeStyles({
     display: 'flex',
     flexDirection: 'column',
     position: 'relative',
-    zIndex: 3
+    zIndex: 3,
 })
 const videoLabel = mergeStyles({
     padding: '.25em .5em',
-    zIndex: 1
+    zIndex: 1,
 })
 const bottomRow = mergeStyles({
     position: 'absolute',
@@ -93,7 +93,7 @@ const VideoBox: FunctionComponent<VideoBoxProps> = ({
                 setMouseEvent(e as any)
             }}
             className={videoContainer}
-            style={{border: `3px solid ${theme.palette.neutralLighter}`}}
+            style={{ border: `3px solid ${theme.palette.neutralLighter}` }}
         >
             <video
                 title={label}
