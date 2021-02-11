@@ -127,9 +127,12 @@ const PeoplePanel: FunctionComponent = () => {
             }
         }
     }, [connections])
-    useEffect(() => () => {
-        if (aloneToast.current) dismissToast(aloneToast.current)
-    }, [])
+    useEffect(
+        () => () => {
+            if (aloneToast.current) dismissToast(aloneToast.current)
+        },
+        [],
+    )
     return (
         <Stack verticalAlign="center" className={vFluid}>
             {!connections.length ? (

@@ -1,6 +1,6 @@
 {
     "name": "mooz",
-    "version": "0.1.0",
+    "version": "1.0.0",
     "private": true,
     "proxy": "http://localhost:5000",
     "engines": {
@@ -11,28 +11,20 @@
         "@testing-library/jest-dom": "^5.11.8",
         "@testing-library/react": "^11.2.3",
         "@testing-library/user-event": "^12.6.0",
-        "connect-gzip-static": "^2.1.1",
-        "finalhandler": "^1.1.2",
         "fscreen": "^1.1.0",
         "nanoid": "^3.1.20",
-        "node-cache": "^5.1.2",
         "react": "^17.0.1",
         "react-dom": "^17.0.1",
         "react-scripts": "4.0.1",
         "react-toastify": "^7.0.2",
         "recoil": "^0.1.2",
-        "serve-static": "^1.14.1",
         "simple-peer": "^9.9.3",
-        "socket.io": "^3.0.5",
-        "socket.io-client": "^3.0.5",
+        "socket.io-client": "^3.1.1",
         "web-vitals": "^0.2.4"
     },
     "scripts": {
-        "react-dev": "react-scripts start",
-        "node-dev": "nodemon -e ts --exec \"ts-node --project server/tsconfig.json\" ./server/index.ts",
-        "node-build": "tsc -p server",
-        "build": "npm run format && npm run lint && react-scripts build && gzipper compress --level 8 ./build && npm run node-build",
-        "start": "node ./server",
+        "dev": "react-scripts start",
+        "build": "npm run format && npm run lint && react-scripts build",
         "format": "prettier --write src/**/*.ts{,x}",
         "lint": "eslint src/**/*.ts{,x}"
     },
@@ -56,9 +48,7 @@
     },
     "devDependencies": {
         "@types/fscreen": "^1.0.1",
-        "@types/finalhandler": "^1.1.0",
         "@types/jest": "^26.0.20",
-        "@types/node": "^14.14.21",
         "@types/react": "^16.14.2",
         "@types/react-dom": "^16.9.10",
         "@types/simple-peer": "^9.6.1",
@@ -72,9 +62,7 @@
         "eslint-plugin-jsx-a11y": "^6.4.1",
         "eslint-plugin-react": "^7.22.0",
         "eslint-plugin-react-hooks": "^4.2.0",
-        "gzipper": "^4.4.0",
         "prettier": "2.2.1",
-        "ts-node": "^9.1.1",
         "typescript": "^4.1.3"
     }
 }

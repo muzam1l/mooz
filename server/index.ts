@@ -2,23 +2,10 @@ import { createServer } from 'http'
 import { Server, Socket } from 'socket.io'
 import { nanoid } from 'nanoid'
 import NodeCache from 'node-cache'
-// @ts-ignore
-import gzipStatic from 'connect-gzip-static'
-import finalhandler from 'finalhandler'
-import { resolve } from 'path'
-
-const serve = gzipStatic(resolve(__dirname, '../build'))
 
 const IO_OPTIONS = { cors: { origin: '*' } }
 
-const httpServer = createServer((req, res) => {
-    const nxt = () => {
-        req.url = '/'
-        serve(req, res, finalhandler(req, res))
-    }
-    serve(req, res, nxt)
-})
-
+const httpServer = createServer()
 const io = new Server(httpServer, IO_OPTIONS)
 
 const roomsCache = new NodeCache({

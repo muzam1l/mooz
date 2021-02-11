@@ -2,7 +2,7 @@ import { CommandBar, DefaultButton, ThemeProvider, useTheme } from '@fluentui/re
 import type { ICommandBarItemProps, IButtonProps } from '@fluentui/react'
 import { FunctionComponent, useState } from 'react'
 import { useRecoilValue } from 'recoil'
-import { useFullScreen } from "../../comps/full-screen"
+import { useFullScreen } from '../../comps/full-screen'
 import {
     audioDevicesState,
     videoDevicesState,
@@ -23,7 +23,11 @@ interface MyCommandBarProps {
     onClickFullscreen?: () => void
 }
 
-const MyCommandBar: FunctionComponent<MyCommandBarProps> = ({ onClickPeople, onClickChat, onClickFullscreen }) => {
+const MyCommandBar: FunctionComponent<MyCommandBarProps> = ({
+    onClickPeople,
+    onClickChat,
+    onClickFullscreen,
+}) => {
     const theme = useTheme()
     const themeType = useThemeType()
     const setTheme = useSetTheme()
@@ -131,7 +135,12 @@ const MyCommandBar: FunctionComponent<MyCommandBarProps> = ({ onClickPeople, onC
                 style: displayMediaStatus !== 'on' ? iconMuted : {},
             },
             tooltipHostProps: {
-                content: displayMediaStatus === 'on' ? 'Stop sharing' : (!isRemoteDisplay) ? 'Share your screen': "Someone's already sharing screen",
+                content:
+                    displayMediaStatus === 'on'
+                        ? 'Stop sharing'
+                        : !isRemoteDisplay
+                        ? 'Share your screen'
+                        : "Someone's already sharing screen",
                 delay: 0,
             },
             onClick: () => {
@@ -208,7 +217,12 @@ const MyCommandBar: FunctionComponent<MyCommandBarProps> = ({ onClickPeople, onC
         {
             // eslint-disable-next-line
             commandBarButtonAs: ({ text, key }) => (
-                <DefaultButton onClick={() => onAbort()} text={text} key={key} styles={LeaveButtonStyles} />
+                <DefaultButton
+                    onClick={() => onAbort()}
+                    text={text}
+                    key={key}
+                    styles={LeaveButtonStyles}
+                />
             ),
             key: 'leave',
             text: 'Leave',

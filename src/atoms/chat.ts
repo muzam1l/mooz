@@ -14,7 +14,7 @@ export interface MetaData {
 
 export interface PeerData {
     message?: Message
-    metadata?: MetaData 
+    metadata?: MetaData
 }
 
 export const messagesState = atom<Message[]>({

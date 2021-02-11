@@ -37,8 +37,10 @@ const Fullscreen: FunctionComponent<PropsWithChildren<Props>> = ({
                 const isFullscreen = !!fscreen.fullscreenElement
                 if (isFullscreen) fscreen.exitFullscreen()
                 else {
-                    fscreen.requestFullscreen(elem);
-                    toast('Entered into fullscreen mode, double click to toggle', { type: ToastType.info })
+                    fscreen.requestFullscreen(elem)
+                    toast('Entered into fullscreen mode, double click to toggle', {
+                        type: ToastType.info,
+                    })
                 }
             } catch (err) {
                 toast('Fullscreen error', { autoClose: Timeout.SHORT, type: ToastType.error })
