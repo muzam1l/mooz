@@ -4,7 +4,10 @@ import { Socket, io } from 'socket.io-client'
 export const createSocket = (): Socket => {
     const port = process.env.REACT_APP_SOCKET_PORT
     const { origin } = window.location
-    const socket = io(`${origin}${port ? `:${port}` : ''}`)
+    const url = process.env.REACT_APP_SOCKET_URL || `${origin}${port ? `:${port}` : ''}`
+    const socket = io(url, {
+        withCredentials: !!process.env.REACT_APP_SOCKET_URL
+    })
 
     // socket.onAny((event, ...args) => {
     //     console.log(`got ${event} with args:`, ...args)

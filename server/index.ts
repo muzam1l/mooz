@@ -3,7 +3,12 @@ import { Server, Socket } from 'socket.io'
 import { nanoid } from 'nanoid'
 import NodeCache from 'node-cache'
 
-const IO_OPTIONS = { cors: { origin: '*' } }
+const IO_OPTIONS = {
+    cors: {
+        origin: process.env.ALLOW_ORIGIN || '*',
+        credentials: !!process.env.ALLOW_ORIGIN,
+    },
+}
 
 const httpServer = createServer()
 const io = new Server(httpServer, IO_OPTIONS)

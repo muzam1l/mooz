@@ -1,0 +1,15 @@
+version: '3'
+
+services:
+
+  client:
+    image: muzam1l/mooz
+    ports:
+      - 80:80
+
+  server:
+    image: muzam1l/mooz-server
+    ports:
+      - "5000:5000"
+    environment:
+      - PORT=5000

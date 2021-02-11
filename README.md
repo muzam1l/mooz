@@ -3,11 +3,9 @@
 WebRTC based video chat app whose name and other stuff is 100% orignal.
 I would write some sexy and sophisticated line, but I have lost it.
 
-# [Demo](https://mooz-app.herokuapp.com)
+# [Demo](https://mooz-app.netlify.app/)
 
 TODO A good-looking gif
-
-<small>Free Heroku server may take some time to wake up after sleep, so first load can be long.</small>
 
 # Uses
 
@@ -34,6 +32,14 @@ Works for now
 TODO migrate to redis adapter.
 
 # Deploying
+
+## Prebuilt images with docker-compose
+
+Run the provided `docker-compose` file in *appropriate place*
+
+`docker-compose up`
+
+And done, just serve behind ssl, expose port 5000 for sockets and enjoy your life. If you want to deploy modified app, see options below.
 
 ## Docker
 
@@ -67,7 +73,7 @@ If you dont wan't to use docker, these are the npm commands for every step.
 
 `npm run build` to format, lint and build front-end.
 
-~Then serve static files accordingly~
+*Then* serve static files accordingly
 
 [cd server]
 
