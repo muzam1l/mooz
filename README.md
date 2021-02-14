@@ -41,6 +41,8 @@ Run the provided `docker-compose` file in *appropriate place*
 
 And done, just serve behind ssl, expose port 5000 for sockets and enjoy your life. If you want to deploy modified app, see options below.
 
+TODO proxy websockets with nginx without having to open port.
+
 ## Docker
 
 This project is split into two containers, one for react front-end which is build and then served with nginx and other for server.
@@ -60,6 +62,8 @@ Following commands builds these images respectively.
 `docker run -d --rm -p 80:80 --name client mooz`
 
 `docker run -d --rm -p 5000:5000 -e "PORT=5000" --name server mooz-server`
+
+*If you are gonna have server and client on different domains, pass `ALLOW_ORIGIN` env varibale to server and `REACT_APP_SOCKET_URL` to client.*
 
 ## Manual
 

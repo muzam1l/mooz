@@ -9,7 +9,7 @@ const CreateMeeting: FunctionComponent = () => {
     const [preferences, setPreferences] = useRecoilState(preferencesState)
     const theme = useTheme()
     const socket = useRecoilValue(socketState)
-    const [max, setMax] = useState('2')
+    const [max, setMax] = useState('5')
     const [meetingName, setMeetingName] = useState('')
     const [personName, setPersonName] = useState(preferences.name)
     const [disabled, setDisabled] = useState(false)

@@ -19,9 +19,9 @@ const JoinMeeting: FunctionComponent<JoinProps> = ({ defaultId }) => {
     const [error, setError] = useState<string | null>(null)
 
     // no need for useCallback as set-state functions dont change
-    const onError = () => {
+    const onError = (err: string) => {
         setDisabled(false)
-        setError('Invalid link or some error occured ¯\\_(ツ)_/¯')
+        setError(err)
     }
 
     const handleSubmit = useCallback(
@@ -30,10 +30,10 @@ const JoinMeeting: FunctionComponent<JoinProps> = ({ defaultId }) => {
             if (disabled) return
             setError(null)
             setDisabled(true)
-            socket.emit('join_room', { name, link }, ({ isError }: { isError: boolean }) => {
+            socket.emit('join_room', { name, link }, ({ error: err }: { error?: string }) => {
                 // on  should redirect to main app via 'joined_room' event listened in src/index
-                if (isError) {
-                    onError()
+                if (err) {
+                    onError(err)
                 }
                 setPreferences({ name })
             })

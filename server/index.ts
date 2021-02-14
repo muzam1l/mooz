@@ -72,13 +72,26 @@ io.on('connection', (socket: Socket) => {
         }
     })
 
-    socket.on('join_room', (opts, cb) => {
+    socket.on('join_room', async (opts, cb) => {
         try {
             const { name, link } = opts
-            const room = getRoomFromLink(link) // throws error on no room
+            const room = getRoomFromLink(link)
+
+            if (!room) {
+                cb({ error: 'Room not found or invalid input!' })
+                return
+            }
+            const maxPeople = parseInt(room.opts?.maxPeople || '')
+            const sockets = await io.in(room.id).allSockets()
+            const peopleCount = sockets.size
+            if (!isNaN(maxPeople) && peopleCount >= maxPeople) {
+                cb({ error: 'Specified room participants limit reached, make a new one!' })
+                return
+            }
 
             const { sessionId } = roomsCache.get<Person>(socket.id) || {}
             if (!sessionId) throw Error('No session id')
+
             socket.join(room.id)
             socket.to(room.id).emit('person_joined', {
                 name,
@@ -86,20 +99,22 @@ io.on('connection', (socket: Socket) => {
             })
             io.to(socket.id).emit('joined_room', room)
 
-            cb({ isError: false })
+            cb({ error: undefined })
         } catch (err) {
             console.error('Error creating room', err)
-            cb({ isError: true })
+            cb({ error: 'Something went wrong, try again later.' })
         }
     })
 
     socket.on('leave_room', () => {
         try {
             socket.rooms.forEach(room => {
-                if (room === socket.id) return
+                const { sessionId } = roomsCache.get<Person>(socket.id) || {}
+
+                if (room === socket.id || room === sessionId) return
 
                 socket.leave(room)
-                const { sessionId } = roomsCache.get<Person>(socket.id) || {}
+
                 if (sessionId) {
                     socket.to(room).emit('person_left', {
                         sessionId,
@@ -118,13 +133,11 @@ io.on('connection', (socket: Socket) => {
             console.error('Error leaving room 😂', err)
         }
     })
-    // person reports that person left
+
+    // Peer reports that the person left
     socket.on('person_left', ({ sessionId }: { sessionId: string }) => {
         try {
             io.to(sessionId).emit('leave_room')
-            // ALERT exposes memory leak as it does not leave socketio room
-            // TODO make leaving persons socket (have to find that) leave rooms it is in
-
             socket.rooms.forEach(room => {
                 if (room === socket.id) return
                 const { sessionId: mySessionId } = roomsCache.get<Person>(socket.id) || {}
@@ -133,14 +146,6 @@ io.on('connection', (socket: Socket) => {
                 io.to(room).emit('person_left', {
                     sessionId,
                 })
-                io.in(room)
-                    .allSockets()
-                    .then(sockets => {
-                        if (sockets.size === 0) {
-                            // room is now empty, clear the memory reference
-                            if (roomsCache.has(room)) roomsCache.del(room)
-                        }
-                    })
             })
         } catch (err) {
             console.error('Error leaving room 😂', err)
@@ -163,7 +168,7 @@ io.on('connection', (socket: Socket) => {
     })
 
     socket.on('disconnecting', () => {
-        const { sessionId } = roomsCache.get<Person>(socket.id) || {} 
+        const { sessionId } = roomsCache.get<Person>(socket.id) || {}
         roomsCache.del(socket.id)
         socket.rooms.forEach(room => {
             if (room !== socket.id || room !== sessionId) {
@@ -179,7 +184,7 @@ io.on('connection', (socket: Socket) => {
 const PATH_REGEX = /^\/room\/(?<id>[A-Za-z0-9_-]+$)/
 const ID_REGEX = /^(?<id>[A-Za-z0-9_-]+$)/
 
-function getRoomFromLink(link: string): Room {
+function getRoomFromLink(link: string): Room | undefined {
     let id: string | undefined
     try {
         const url = new URL(link) // throws if url is invalid
@@ -189,14 +194,14 @@ function getRoomFromLink(link: string): Room {
         */
         id = url.pathname.match(PATH_REGEX)?.groups?.id
     } catch (error) {
-        // try link as id  
+        // try link as id
         id = link.match(ID_REGEX)?.groups?.id
     }
 
-    if (!id) throw Error('Cannot parse room id')
-    if (!roomsCache.has(id)) throw Error('Room not found')
+    // if (!id) throw Error('Cannot parse room id')
+    // if (!roomsCache.has(id)) throw Error('Room not found')
 
-    return roomsCache.get(id) as Room
+    return id !== undefined ? roomsCache.get(id) : undefined
 }
 
 httpServer.listen(process.env.PORT || 5000, () => {

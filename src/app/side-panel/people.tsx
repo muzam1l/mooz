@@ -24,6 +24,18 @@ const PersonComponent: FunctionComponent<{ item?: Connection; index?: number }> 
 }) => {
     const [mouseEvent, setMouseEvent] = useState<MouseEvent | null>(null)
     const theme = useTheme()
+    const [presence, setPresence] = useState(PersonaPresence.away)
+    useEffect(() => {
+        const onConnected = () => setPresence(PersonaPresence.online)
+        const onClose = () => setPresence(PersonaPresence.offline)
+        const { peer } = window.moozPeers?.find(p => p.partnerId === item?.partnerId) || {}
+        peer?.on('connect', onConnected)
+        peer?.on('close', onClose)
+        return () => {
+            peer?.off('connect', onConnected)
+            peer?.off('close', onClose)
+        }
+    }, [item])
     if (!item || index === undefined) return null
     const showNotImplemented = () => {
         toast('Not Implemented yet', { autoClose: Timeout.SHORT, type: ToastType.severeWarning })
@@ -50,7 +62,7 @@ const PersonComponent: FunctionComponent<{ item?: Connection; index?: number }> 
                 horizontalAlign="space-between"
             >
                 <Persona
-                    presence={PersonaPresence.online}
+                    presence={presence}
                     text={item.partnerName || `<${item.partnerId}>`}
                     secondaryText="Online"
                     size={PersonaSize.size32}
@@ -114,7 +126,7 @@ const PeoplePanel: FunctionComponent = () => {
     useEffect(() => {
         if (!connections.length && !aloneToast.current)
             aloneToast.current = toast(
-                'You are curently alone 💩, make some friends and invite them!',
+                'You are curently alone 💩, make some friends and then invite them!',
                 {
                     autoClose: Timeout.PERSIST,
                     type: ToastType.info,
