@@ -47,14 +47,14 @@ export function getVideoBoxSize(
 
 /* eslint-disable */
 export function transformSdp(sdp: string, bandwidth: number) {
-    let modifier = 'AS'
-    // if (adapter.browserDetails.browser === 'firefox') {
-    if (navigator.userAgent.indexOf('Firefox') != -1) {
-        bandwidth = (bandwidth >>> 0) * 1000
-        modifier = 'TIAS'
-    }
+    // follow unfied plan, fuck older browser
+
+    const modifier = 'TIAS'
+    bandwidth = (bandwidth >>> 0) * 1000
+
     sdp = sdp.replace(new RegExp('b=' + modifier + ':.*\r\n'), '')
     sdp = sdp.replace(/(m=video.*\r\n)/g, `$1b=${modifier}:${bandwidth}\r\n`)
+
     return sdp
 }
 

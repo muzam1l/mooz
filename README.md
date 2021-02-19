@@ -51,7 +51,7 @@ This project is split into two containers, one for react front-end which is buil
 
 Following commands builds these images respectively.
 
-*cd [project-root]*
+*cd %project-root%*
 
 `docker build --build-arg SOCKET_PORT=5000 --tag mooz .`
 

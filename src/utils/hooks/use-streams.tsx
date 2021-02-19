@@ -193,20 +193,6 @@ export const useDisplayMedia = (): DisplayMediaReturn => {
     const [status, setStatus] = useState<Status>('default')
     const isRemoteDisplay = !!useRecoilValue(remoteStreamsState).find(r => r.isDisplay)
 
-    const start = useCallback(async () => {
-        try {
-            if (isRemoteDisplay) throw Error('No multiple display streams allowed')
-            // BUG No Ts definition for getDisplayMedia
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const stream = await (navigator.mediaDevices as any).getDisplayMedia({
-                video: { cursor: 'always' },
-            })
-            setDisplayMedia(stream)
-            setStatus('on')
-        } catch (err) {
-            toast('Error starting display media', { type: ToastType.error })
-        }
-    }, [setDisplayMedia, isRemoteDisplay])
     const stop = useCallback(async () => {
         try {
             displayMedia?.getTracks().forEach(track => track.stop())
@@ -216,6 +202,22 @@ export const useDisplayMedia = (): DisplayMediaReturn => {
             toast('Error stopping display media', { type: ToastType.error })
         }
     }, [displayMedia, setDisplayMedia])
+
+    const start = useCallback(async () => {
+        try {
+            if (isRemoteDisplay) throw Error('No multiple display streams allowed')
+            // BUG No Ts definition for getDisplayMedia
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const stream = await (navigator.mediaDevices as any).getDisplayMedia({
+                video: { cursor: 'always' },
+            })
+            stream.getVideoTracks()[0].onended = stop;
+            setDisplayMedia(stream)
+            setStatus('on')
+        } catch (err) {
+            toast('Error starting display media', { type: ToastType.error })
+        }
+    }, [setDisplayMedia, isRemoteDisplay, stop])
 
     return {
         displayMediaStatus: status,
