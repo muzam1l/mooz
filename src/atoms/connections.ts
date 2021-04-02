@@ -48,6 +48,74 @@ export const remoteStreamsState = atom<RemoteStream[]>({
     default: [],
 })
 
+export const addRemoteStreamsSelector = selector<RemoteStream[]>({
+    key: 'addRemoteStreamsSelector',
+    get: ({ get }) => get(remoteStreamsState),
+    set: ({ get, set }, newVal) => {
+        if (newVal instanceof DefaultValue) {
+            throw Error('What were you thinking dude')
+        }
+        const [user, display] = newVal as (RemoteStream | undefined)[]
+        const remoteStreams = get(remoteStreamsState)
+        let rStreams = remoteStreams
+
+        if (user && !remoteStreams.find(r => !r.isDisplay && r.partnerId === user.partnerId)) {
+            rStreams = rStreams.concat(user)
+        }
+        if (
+            display &&
+            !remoteStreams.find(
+                r =>
+                    r.isDisplay &&
+                    r.partnerId === display.partnerId &&
+                    r.stream.getVideoTracks()[0].id === display?.stream.getVideoTracks()[0].id,
+            )
+        ) {
+            /* Now allowing multiple display streams, if they reach this point */
+
+            // remove other display tracks
+            // rStreams = rStreams.filter(({ isDisplay, stream }) => {
+            //     if (isDisplay) {
+            //         stream.getTracks().forEach(t => {
+            //             console.log('add remote, remove other displays, stopping track', t)
+            //             t.stop()
+            //             stream.removeTrack(t)
+            //         })
+            //         return false
+            //     }
+            //     return true
+            // })
+
+            // remove prev display tracks from this peer, if any
+            rStreams = rStreams.filter(({ isDisplay, stream, partnerId }) => {
+                if (isDisplay && partnerId === display.partnerId) {
+                    stream.getTracks().forEach(t => {
+                        t.stop()
+                        stream.removeTrack(t)
+                    })
+                    return false
+                }
+                return true
+            })
+            rStreams = rStreams.concat(display)
+        }
+        if (!display) {
+            // remove display streams from this peer
+            rStreams = rStreams.filter(({ isDisplay, stream, partnerId }) => {
+                if (isDisplay && partnerId === user?.partnerId) {
+                    stream.getTracks().forEach(t => {
+                        t.stop()
+                        stream.removeTrack(t)
+                    })
+                    return false
+                }
+                return true
+            })
+        }
+        set(remoteStreamsState, rStreams)
+    },
+})
+
 export interface Connection {
     partnerId: string
     initiator: boolean

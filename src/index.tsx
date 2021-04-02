@@ -40,6 +40,10 @@ const Eagle: FunctionComponent = () => {
     const onAbort = useAbort()
     const connectToast = useRef<ReactText>()
     useEffect(() => {
+        // TODO detect browser close to call this fucn
+        // const onCloseWindow = () => {
+        //     socket.emit('leave_room')
+        // }
         const onRoomJoined = (r: Room) => {
             const name = r.name || `by ${r.created_by}` || `with id ${r.id}`
             window.history.pushState({}, 'Mooz', `/room/${r.id}`)
@@ -105,7 +109,7 @@ ReactDOM.render(
         <RecoilRoot>
             <ThemeProvider>
                 <DebugObserver />
-                <Suspense fallback={<Spinner label="Joining" className={spinner} size={3} />}>
+                <Suspense fallback={<Spinner label="Loading..." className={spinner} size={3} />}>
                     <Eagle />
                 </Suspense>
             </ThemeProvider>

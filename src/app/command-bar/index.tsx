@@ -44,6 +44,8 @@ const MyCommandBar: FunctionComponent<MyCommandBarProps> = ({
 
     const isRemoteDisplay = !!useRecoilValue(remoteStreamsState).find(r => r.isDisplay)
 
+    const [mediaBtnsDisabled, setMediaBtnsDisabled] = useState(false)
+
     const iconMuted = {
         color: theme.palette.neutralDark,
     }
@@ -58,10 +60,14 @@ const MyCommandBar: FunctionComponent<MyCommandBarProps> = ({
                 const dummyDevice: any = {
                     kind: 'audioinput',
                 }
+                setMediaBtnsDisabled(true)
                 if (!currentMicId)
-                    startUserMedia(audioDevices.length ? audioDevices[0] : dummyDevice)
-                else stopUserMedia('audioinput')
+                    startUserMedia(
+                        audioDevices.length ? audioDevices[0] : dummyDevice,
+                    ).finally(() => setMediaBtnsDisabled(false))
+                else stopUserMedia('audioinput').finally(() => setMediaBtnsDisabled(false))
             },
+            disabled: mediaBtnsDisabled,
             buttonStyles,
             key: 'audioToggle',
             // iconOnly: true,
@@ -96,10 +102,14 @@ const MyCommandBar: FunctionComponent<MyCommandBarProps> = ({
                 const dummyDevice: any = {
                     kind: 'videoinput',
                 }
+                setMediaBtnsDisabled(true)
                 if (!currentCameraId)
-                    startUserMedia(videoDevices.length ? videoDevices[0] : dummyDevice)
-                else stopUserMedia('videoinput')
+                    startUserMedia(
+                        videoDevices.length ? videoDevices[0] : dummyDevice,
+                    ).finally(() => setMediaBtnsDisabled(false))
+                else stopUserMedia('videoinput').finally(() => setMediaBtnsDisabled(false))
             },
+            disabled: mediaBtnsDisabled,
             buttonStyles,
             key: 'videoToggle',
             // iconOnly: true,
@@ -129,7 +139,7 @@ const MyCommandBar: FunctionComponent<MyCommandBarProps> = ({
             key: 'screen',
             text: 'Screen',
             // iconOnly: true,
-            disabled: isRemoteDisplay,
+            disabled: displayMediaStatus !== 'on' && isRemoteDisplay,
             iconProps: {
                 iconName: 'ScreenCast',
                 style: displayMediaStatus !== 'on' ? iconMuted : {},

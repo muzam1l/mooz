@@ -1,3 +1,4 @@
+/* eslint-disable no-underscore-dangle */
 import { FunctionComponent, useCallback, useEffect, useRef } from 'react'
 import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil'
 import Peer from 'simple-peer'
@@ -12,6 +13,8 @@ import {
     PeerData,
     Message,
     displayStreamState,
+    addRemoteStreamsSelector,
+    RemoteStream,
 } from '../../atoms'
 import { MoozPeer } from '../../react-app-env'
 import toast, { Timeout, ToastType } from '../../comps/toast'
@@ -24,6 +27,15 @@ interface SignalMessage {
 interface PeerProps extends Peer.Options {
     partnerId: string
     partnerName?: string
+}
+
+interface PeerInternals extends Peer.Instance {
+    _remoteStreams?: MediaStream[]
+    _remoteTracks?: {
+        stream: MediaStream
+        track: MediaStreamTrack
+    }[]
+    _connected?: boolean
 }
 
 type ErrorCodes =
@@ -46,6 +58,7 @@ const createSdpTransform = (badwidth: number) => (sdp: string) => transformSdp(s
 
 const PeerComponent: FunctionComponent<PeerProps> = props => {
     const addMessage = useSetRecoilState(addMessageSelector)
+    const addRemoteStreams = useSetRecoilState(addRemoteStreamsSelector)
     const preferences = useRecoilValue(preferencesState)
     const { partnerId, partnerName, ...opts } = props
     const [remoteStreams, setRemoteStreams] = useRecoilState(remoteStreamsState)
@@ -102,62 +115,101 @@ const PeerComponent: FunctionComponent<PeerProps> = props => {
     )
 
     const onRemoteStream = useCallback(
-        (stream: MediaStream) => {
-            // console.log('onStream', stream.getTracks())
+        (stream: MediaStream, dontStopPrev?: boolean) => {
+            // console.log('onstream', dontStopPrev, stream.getTracks())
             const remoteStream = remoteStreamRef.current
             // remove prev tracks
-            remoteStream.getTracks().forEach(t => {
-                t.stop()
-                remoteStream.removeTrack(t)
-            })
-            let rStreams = remoteStreams
+            if (!dontStopPrev) {
+                remoteStream.getTracks().forEach(t => {
+                    if (t.kind === 'video') t.stop()
+                    remoteStream.removeTrack(t)
+                })
+            }
+            const toAdd: RemoteStream[] = []
 
             // check for display stream
             const videoTracks = stream.getVideoTracks()
             const displayTrack = videoTracks[1] as MediaStreamTrack | undefined // TODO 1?
+
             if (displayTrack) {
                 stream.removeTrack(displayTrack)
                 const rdStream = new MediaStream([displayTrack])
-
-                // stop old display stream
-                rStreams.forEach(({ isDisplay, stream: s }) => {
-                    if (isDisplay) {
-                        s.getTracks().forEach(t => {
-                            t.stop()
-                            s.removeTrack(t)
-                        })
-                    }
-                })
-
-                rStreams = rStreams
-                    .filter(r => !r.isDisplay)
-                    .concat({ stream: rdStream, isDisplay: true, partnerId, partnerName })
-            } else {
-                // remove display streams from this peer
-                rStreams.forEach(({ isDisplay, stream: s, partnerId: id }) => {
-                    if (isDisplay && id === partnerId) {
-                        s.getTracks().forEach(t => {
-                            t.stop()
-                            s.removeTrack(t)
-                        })
-                    }
-                })
-                rStreams = rStreams.filter(r => !r.isDisplay)
+                // if this track already exists in dispay stream, return
+                if (
+                    remoteStreams.find(
+                        rs =>
+                            rs.isDisplay &&
+                            rs.partnerId === partnerId &&
+                            rs.stream
+                                .getVideoTracks()
+                                .find(
+                                    vt =>
+                                        vt.id === displayTrack.id &&
+                                        vt.enabled &&
+                                        vt.readyState === 'live',
+                                ),
+                    )
+                )
+                    return
+                // push new one
+                toAdd.push({ stream: rdStream, isDisplay: true, partnerId, partnerName })
             }
 
             // add new tracks
             stream.getTracks().forEach(t => {
+                if (dontStopPrev && remoteStream.getTracks().find(rt => rt.id === t.id)) return
                 remoteStream.addTrack(t)
             })
 
-            // save if not already
-            const present = remoteStreams.find(s => s.partnerId === partnerId && !s.isDisplay)
-            if (!present) {
-                rStreams = rStreams.concat({ stream: remoteStream, partnerId, partnerName })
-            }
-            setRemoteStreams(rStreams)
+            toAdd.unshift({
+                stream: remoteStream,
+                partnerId,
+                partnerName,
+            })
+
+            addRemoteStreams(toAdd)
         },
-        [setRemoteStreams, remoteStreams, partnerId, partnerName],
+        [addRemoteStreams, remoteStreams, partnerId, partnerName],
+    )
+
+    // Just to make sure that every track is loaded
+    const onTrack = useCallback(
+        (track: MediaStreamTrack, stream: MediaStream) => {
+            const pr = window.moozPeers?.find(p => p.partnerId === partnerId)?.peer as
+                | PeerInternals
+                | undefined
+
+            const currStream = pr?._remoteStreams?.find(r => r.active)
+            if (!currStream || currStream.id !== stream.id) return
+            // proceed only for tracks belonging to currently active stream
+
+            // let tr = currStream
+            //     .getTracks()
+            //     .filter(t => t.enabled && t.readyState === 'live')
+            let tr =
+                pr?._remoteTracks
+                    ?.filter(({ stream: s }) => s.id === currStream.id)
+                    .map(o => o.track)
+                    .filter(t => t.enabled && t.readyState === 'live') || []
+
+            if (!tr.find(t => t.id === track.id)) {
+                tr = tr.concat(track)
+            }
+
+            const compTr = [
+                ...remoteStreamRef.current.getTracks(),
+                remoteStreams
+                    .find(r => r.isDisplay && r.partnerId === partnerId)
+                    ?.stream.getVideoTracks()[0],
+            ].filter(Boolean) as MediaStreamTrack[]
+
+            // console.log({ tr, compTr })
+            if (tr.length > compTr.length) {
+                const strm = new MediaStream(tr)
+                onRemoteStream(strm, true)
+            }
+        },
+        [onRemoteStream, remoteStreams, partnerId],
     )
 
     useEffect(() => {
@@ -225,6 +277,7 @@ const PeerComponent: FunctionComponent<PeerProps> = props => {
         peer.on('connect', onConnected)
         peer.on('close', onClose)
         peer.on('error', onError)
+        peer.on('track', onTrack)
 
         socket.on('message', onMessageRecieved)
 
@@ -236,19 +289,11 @@ const PeerComponent: FunctionComponent<PeerProps> = props => {
             peer.off('data', onMetaData)
             peer.off('close', onClose)
             peer.off('error', onError)
+            peer.off('track', onTrack)
 
             socket.off('message', onMessageRecieved)
         }
-    }, [
-        onRemoteStream,
-        socket,
-        partnerId,
-        addMessage,
-        partnerName,
-        remoteStreams,
-        setRemoteStreams,
-        onMetaData,
-    ])
+    }, [onRemoteStream, socket, partnerId, addMessage, onMetaData, onTrack, partnerName])
 
     useEffect(() => {
         const peer = peerRef.current as Peer.Instance
@@ -264,8 +309,9 @@ const PeerComponent: FunctionComponent<PeerProps> = props => {
             if (!tracks.length) {
                 const msg: PeerData = { metadata: { state: 'NO_STREAM' } }
                 peer.send(JSON.stringify(msg))
+            } else {
+                peer.addStream(stream)
             }
-            peer.addStream(stream)
         } catch (err) {
             // console.error(err)
         }
