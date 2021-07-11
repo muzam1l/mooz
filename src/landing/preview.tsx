@@ -9,7 +9,7 @@ import { useUserMedia } from '../utils/hooks/use-streams'
 
 const VideoPreview: FunctionComponent = () => {
     const [mediaBtnsDisabled, setMediaBtnsDisabled] = useState(false)
-    
+
     const { startUserMedia, stopUserMedia } = useUserMedia()
     const currentMicId = useRecoilValue(currentMicIdState)
     const currentCameraId = useRecoilValue(currentCameraIdState)

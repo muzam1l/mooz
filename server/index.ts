@@ -5,7 +5,7 @@ import NodeCache from 'node-cache'
 
 const IO_OPTIONS = {
     cors: {
-        origin: process.env.ALLOW_ORIGIN || '*',
+        origin: JSON.parse(process.env.ALLOW_ORIGIN || "\"*\""),
         credentials: !!process.env.ALLOW_ORIGIN,
     },
 }

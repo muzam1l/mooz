@@ -211,7 +211,7 @@ export const useDisplayMedia = (): DisplayMediaReturn => {
             const stream = await (navigator.mediaDevices as any).getDisplayMedia({
                 video: { cursor: 'always' },
             })
-            stream.getVideoTracks()[0].onended = stop;
+            stream.getVideoTracks()[0].onended = stop
             setDisplayMedia(stream)
             setStatus('on')
         } catch (err) {

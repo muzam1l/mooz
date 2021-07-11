@@ -6,7 +6,7 @@ export const createSocket = (): Socket => {
     const { origin } = window.location
     const url = process.env.REACT_APP_SOCKET_URL || `${origin}${port ? `:${port}` : ''}`
     const socket = io(url, {
-        withCredentials: !!process.env.REACT_APP_SOCKET_URL
+        withCredentials: !!process.env.REACT_APP_SOCKET_URL,
     })
 
     // socket.onAny((event, ...args) => {
