@@ -22,11 +22,11 @@ const Provider: FunctionComponent = props => {
             const newTheme = ev.matches ? 'dark' : 'light'
             setTheme(newTheme)
         }
-        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', listener)
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change', listener)
         return () =>
             window
                 .matchMedia('(prefers-color-scheme: dark)')
-                .removeEventListener('change', listener)
+                .removeEventListener?.('change', listener)
     }, [])
 
     const palette = theme === 'dark' ? darkPalette : {}
