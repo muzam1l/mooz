@@ -132,7 +132,7 @@ export const useUserMedia = (): UserMediaReturn => {
                 toast('Error starting user media', { type: ToastType.error })
             }
         },
-        [setUserStream, userStream, updateDeviceList, setCurrentCameraId, setCurrentMicId],
+        [setUserStream, userStream, updateDeviceList, setCurrentCameraId, setCurrentMicId]
     )
 
     const stop = useCallback(
@@ -172,7 +172,7 @@ export const useUserMedia = (): UserMediaReturn => {
 
             toStop.forEach(t => [t.stop()])
         },
-        [userStream, setUserStream, setCurrentCameraId, setCurrentMicId],
+        [userStream, setUserStream, setCurrentCameraId, setCurrentMicId]
     )
 
     return {
@@ -210,6 +210,10 @@ export const useDisplayMedia = (): DisplayMediaReturn => {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const stream = await (navigator.mediaDevices as any).getDisplayMedia({
                 video: { cursor: 'always' },
+                audio: {
+                    echoCancellation: true,
+                    noiseSuppression: true,
+                },
             })
             stream.getVideoTracks()[0].onended = stop
             setDisplayMedia(stream)
