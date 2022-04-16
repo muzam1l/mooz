@@ -53,7 +53,6 @@ export const useUserMedia = (): UserMediaReturn => {
                         width: VIDEO_HEIGHT * ASPECT_RATIO,
                         aspectRatio: ASPECT_RATIO,
                         noiseSuppression: true,
-                        resizeMode: 'none',
                     },
                 }
                 if (device?.kind === 'audioinput') {

@@ -1,5 +1,8 @@
 import { PartialTheme } from '@fluentui/react'
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type PT = any
+
 export const defaultTheme: PartialTheme = {
     stylesheets: [
         `
@@ -20,7 +23,7 @@ export const defaultTheme: PartialTheme = {
     }
     `,
     ],
-}
+} as PT
 
 export const lightPaletteAlt: PartialTheme = {
     palette: {
