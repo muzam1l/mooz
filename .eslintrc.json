@@ -33,6 +33,7 @@
             {
                 "additionalHooks": "useRecoilCallback"
             }
-        ]
+        ],
+        "@typescript-eslint/no-explicit-any": "off"
     }
 }
