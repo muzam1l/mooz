@@ -4,7 +4,7 @@
     "private": true,
     "proxy": "http://localhost:5000",
     "engines": {
-        "node": "14"
+        "node": ">=14"
     },
     "dependencies": {
         "@fluentui/react": "^8.0.0-beta.34",
