@@ -128,7 +128,9 @@ export const useUserMedia = (): UserMediaReturn => {
                 }
                 updateDeviceList()
             } catch (error) {
-                toast('Error starting user media', { type: ToastType.error })
+                toast('Cannot start camera feed.', { type: ToastType.error })
+                // eslint-disable-next-line no-console
+                console.error(error)
             }
         },
         [setUserStream, userStream, updateDeviceList, setCurrentCameraId, setCurrentMicId],
@@ -198,7 +200,9 @@ export const useDisplayMedia = (): DisplayMediaReturn => {
             setDisplayMedia(null)
             setStatus('off')
         } catch (err) {
-            toast('Error stopping display media', { type: ToastType.error })
+            toast('Error stopping screen capture!', { type: ToastType.error })
+            // eslint-disable-next-line no-console
+            console.error(err);
         }
     }, [displayMedia, setDisplayMedia])
 
@@ -214,7 +218,9 @@ export const useDisplayMedia = (): DisplayMediaReturn => {
             setDisplayMedia(stream)
             setStatus('on')
         } catch (err) {
-            toast('Error starting display media', { type: ToastType.error })
+            toast('Cannot start screen capture.', { type: ToastType.error })
+            // eslint-disable-next-line no-console
+            console.error(err)
         }
     }, [setDisplayMedia, isRemoteDisplay, stop])
 

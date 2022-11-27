@@ -1,29 +1,6 @@
 import { PartialTheme } from '@fluentui/react'
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type PT = any
-
-export const defaultTheme: PartialTheme = {
-    stylesheets: [
-        `
-    body {
-        margin: 0;
-        overflow: hidden;
-        -webkit-font-smoothing: antialiased;
-        -moz-osx-font-smoothing: grayscale;
-    }
-    * {
-        box-sizing: border-box;
-    }
-    *:before {
-        box-sizing: border-box;
-    }
-    *:after {
-        box-sizing: border-box;
-    }
-    `,
-    ],
-} as PT
+export const defaultTheme: PartialTheme = {}
 
 export const lightPaletteAlt: PartialTheme = {
     palette: {

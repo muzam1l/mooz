@@ -5,7 +5,7 @@ const AR = 4 / 3
 export const container = mergeStyles({
     height: 'calc(100vh - 40px)',
     display: 'flex',
-    overflowY: 'auto',
+    // overflowY: 'auto',
     width: '100%',
 })
 export const gridContainer = mergeStyles({
@@ -44,6 +44,9 @@ export const modalStyles: Partial<IModalStyles> = {
         maxWidth: '100%',
         display: 'flex',
     },
+    scrollableContent: {
+        overflow: "hidden"
+    }
 }
 
 export const pinnedContainer = mergeStyles({

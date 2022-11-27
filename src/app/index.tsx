@@ -8,6 +8,8 @@ import Connections from './connections'
 import Fullscreen from '../comps/full-screen'
 import { roomState } from '../atoms'
 
+import './main.css'
+
 const App: FunctionComponent = () => {
     const room = useRecoilValue(roomState)
     const [panel, setPanel] = useState<'people' | 'chat' | ''>('')
