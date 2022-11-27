@@ -12,6 +12,7 @@ import { initializeIcons, mergeStyles, Spinner } from '@fluentui/react'
 import { RecoilRoot, useRecoilState, useRecoilValue } from 'recoil'
 import { ToastContainer, Slide } from 'react-toastify'
 import { nanoid } from 'nanoid'
+import process from 'process'
 import toast, { toastClasses, dismissToast, Timeout } from './comps/toast'
 import Landing from './landing'
 import reportWebVitals from './reportWebVitals'
@@ -19,6 +20,8 @@ import { DebugObserver, roomState, socketState, Room } from './atoms'
 import ThemeProvider from './utils/theme/theme-context'
 import 'react-toastify/dist/ReactToastify.css'
 import useAbort from './utils/hooks/use-abort'
+
+window.process = process
 
 // enforce https in production
 if (window.location.protocol === 'http:' && process.env.NODE_ENV === 'production') {
