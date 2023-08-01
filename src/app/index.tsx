@@ -1,44 +1,84 @@
-import { useEffect, useState } from 'react'
-import type { FunctionComponent } from 'react'
-import { useRecoilValue } from 'recoil'
-import CommanBar from './command-bar'
+import { useCallback, useEffect } from 'react'
+import type { FC } from 'react'
+import CommandBar from './command-bar'
 import SidePanel from './side-panel'
-import VideoBoxes from './video-boxes'
-import Connections from './connections'
+import { Media } from './media'
 import Fullscreen from '../comps/full-screen'
-import { roomState } from '../atoms'
+
+import {
+    IServerToClientEvent,
+    createRemoteConnection,
+    destroyRemoteConnection,
+    useRemoteState,
+} from '../state'
 
 import './main.css'
+import toast from '../comps/toast'
+import { MediaPanel } from './media/panel'
 
-const App: FunctionComponent = () => {
-    const room = useRecoilValue(roomState)
-    const [panel, setPanel] = useState<'people' | 'chat' | ''>('')
-    const [fullscreen, setFullscreen] = useState(false)
+const App: FC = () => {
+    const [socket, connections] = useRemoteState(state => [state.socket, state.connections])
 
-    const onClickChat = () => (panel !== 'chat' ? setPanel('chat') : setPanel(''))
-    const onClickPeople = () => (panel !== 'people' ? setPanel('people') : setPanel(''))
-    const onClickFullscreen = () => setFullscreen(!fullscreen)
+    const onPersonJoined: IServerToClientEvent['action:establish_peer_connection'] = useCallback(
+        ({ userId, userName }) => {
+            createRemoteConnection({
+                userId,
+                userName,
+                initiator: false,
+            })
+        },
+        [],
+    )
+
+    const onMessage: IServerToClientEvent['action:message_received'] = useCallback(
+        ({ from, data }) => {
+            if ('connection' in data) {
+                createRemoteConnection({
+                    userId: from,
+                    initiator: true,
+                    userName: data.userName || '',
+                })
+            } else if ('sdpSignal' in data) {
+                const conn = connections.find(c => c.userId === from)
+                if (!conn) return
+                try {
+                    conn.metaData = data.metaData
+                    conn.peerInstance.signal(data.sdpSignal as string)
+                } catch (error) {
+                    console.error('sdp signal error:', error)
+                }
+            }
+        },
+        [connections],
+    )
+
+    const onPersonLeft: IServerToClientEvent['action:terminate_peer_connection'] = useCallback(
+        ({ userId }) => {
+            const conn = connections.find(c => c.userId === userId)
+            if (!conn) return
+            toast(`${conn?.userName} left the meeting`)
+            destroyRemoteConnection(conn)
+        },
+        [connections],
+    )
 
     useEffect(() => {
-        document.title =
-            room?.name || (room?.created_by && `Meeting by ${room?.created_by}`) || 'A Mooz meeting'
+        socket.on('action:establish_peer_connection', onPersonJoined)
+        socket.on('action:message_received', onMessage)
+        socket.on('action:terminate_peer_connection', onPersonLeft)
         return () => {
-            document.title = 'Mooz'
+            socket.off('action:establish_peer_connection', onPersonJoined)
+            socket.off('action:message_received', onMessage)
+            socket.off('action:terminate_peer_connection', onPersonLeft)
         }
-    }, [room])
+    }, [onMessage, onPersonJoined, onPersonLeft, socket])
 
     return (
-        <Fullscreen on={fullscreen} dblclick fullbody>
-            <CommanBar
-                onClickFullscreen={onClickFullscreen}
-                onClickChat={onClickChat}
-                onClickPeople={onClickPeople}
-            />
-            <VideoBoxes />
-
-            <SidePanel setPanel={setPanel} panel={panel} onDismiss={() => setPanel('')} />
-
-            <Connections />
+        <Fullscreen>
+            <CommandBar />
+            <Media />
+            <MediaPanel />
+            <SidePanel />
         </Fullscreen>
     )
 }

@@ -6,10 +6,13 @@ import {
     FontWeights,
     Link,
     Label,
+    Text,
+    ActionButton,
+    useTheme,
 } from '@fluentui/react'
-import type { FunctionComponent } from 'react'
-import { useRecoilValue } from 'recoil'
-import { roomState } from '../atoms'
+import { type FC } from 'react'
+import { useRemoteState } from '../state'
+import { useCopyToClipboard } from '../hooks/use-copy-to-clipboard'
 
 const callout = mergeStyleSets({
     container: {
@@ -30,38 +33,57 @@ const callout = mergeStyleSets({
     },
     footer: {
         fontSize: FontSizes.smallPlus,
-        marginTop: '2em',
+        marginTop: '.5em',
         textAlign: 'center',
         display: 'flex',
         justifyContent: 'space-between',
     },
 })
 
-interface MyCalloutProps {
+interface InfoProps {
     showFooter?: boolean
 }
 
-const MyCallout: FunctionComponent<ICalloutProps & MyCalloutProps> = ({ showFooter, ...props }) => {
-    const room = useRecoilValue(roomState)
+const TextWithCopyButton: FC<{ text: string }> = ({ text }) => {
+    const [copied, copy] = useCopyToClipboard()
+    const theme = useTheme()
+    return (
+        <>
+            <Text styles={{ root: { fontWeight: 'bold' } }}>{text}</Text>
+            <ActionButton
+                onClick={() => copy(text)}
+                iconProps={{
+                    iconName: !copied ? 'Copy' : 'CheckboxComposite',
+                    style: {
+                        fontSize: FontSizes.smallPlus,
+                        color: copied ? theme.semanticColors.successIcon : 'inherit',
+                    },
+                }}
+            />
+        </>
+    )
+}
+
+const InfoOverlay: FC<ICalloutProps & InfoProps> = ({ showFooter, ...props }) => {
+    const room = useRemoteState(state => state.room)
+    if (!room) return null
+
     const link = `${window.location.origin}/room/${room?.id}`
     return (
-        <Callout
-            className={callout.container}
-            role="dialog"
-            calloutMaxWidth={400}
-            // eslint-disable-next-line
-            {...props}
-        >
+        <Callout className={callout.container} role="dialog" calloutMaxWidth={392} {...props}>
             <h1 className={callout.title}>{room?.name}</h1>
+            {room.created_by && <h2 className={callout.secondaryTitle}>{room?.created_by}</h2>}
+
             <h2 className={callout.secondaryTitle}>
-                Room created by {room?.created_by || '<Enter your name next time>'}
-            </h2>
-            <h2 className={callout.secondaryTitle}>
-                ID: <Label>{room?.id}</Label>
+                <Label>
+                    ID: <TextWithCopyButton text={room.id} />
+                </Label>
             </h2>
             <div className={callout.body}>
                 You can invite people directly to this chat by sharing this link{' '}
-                <Label>{link}</Label>
+                <Label>
+                    <TextWithCopyButton text={link} />
+                </Label>
             </div>
             {showFooter && (
                 <div className={callout.footer}>
@@ -80,7 +102,7 @@ const MyCallout: FunctionComponent<ICalloutProps & MyCalloutProps> = ({ showFoot
                         target="_blank"
                         rel="nofollow noreferrer noopener"
                     >
-                        Fork me on GitHub
+                        Fork on GitHub
                     </Link>
                 </div>
             )}
@@ -88,4 +110,4 @@ const MyCallout: FunctionComponent<ICalloutProps & MyCalloutProps> = ({ showFoot
     )
 }
 
-export default MyCallout
+export default InfoOverlay

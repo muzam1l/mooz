@@ -22,7 +22,8 @@
     "downlevelIteration": true
   },
   "include": [
-    "src"
+    "src",
+    "public/scripts"
   ],
   "exclude": [
     "server"

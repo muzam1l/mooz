@@ -1,30 +1,33 @@
-import React, {
-    FunctionComponent,
-    lazy,
-    Suspense,
-    useEffect,
-    ReactNode,
-    useRef,
-    ReactText,
-} from 'react'
-import ReactDOM from 'react-dom'
+import React, { FC, lazy, Suspense, useEffect, useRef } from 'react'
+import { createRoot } from 'react-dom/client'
 import { initializeIcons, mergeStyles, Spinner } from '@fluentui/react'
-import { RecoilRoot, useRecoilState, useRecoilValue } from 'recoil'
-import { ToastContainer, Slide } from 'react-toastify'
-import { nanoid } from 'nanoid'
+import { ToastContainer, Slide, Id } from 'react-toastify'
 import process from 'process'
 import toast, { toastClasses, dismissToast, Timeout } from './comps/toast'
 import Landing from './landing'
 import reportWebVitals from './reportWebVitals'
-import { DebugObserver, roomState, socketState, Room } from './atoms'
+import {
+    IRoom,
+    abortRoom,
+    enterRoom,
+    setupLocalMediaListeners,
+    useLocalState,
+    useRemoteState,
+} from './state'
 import ThemeProvider from './utils/theme/theme-context'
+
 import 'react-toastify/dist/ReactToastify.css'
-import useAbort from './utils/hooks/use-abort'
+import { DOUBLE_CLICK_MS } from './state/constants'
+import { debug } from './utils/helpers'
 
 window.process = process
 
 // enforce https in production
-if (window.location.protocol === 'http:' && process.env.NODE_ENV === 'production') {
+if (
+    process.env.NODE_ENV === 'production' &&
+    window.location.hostname !== 'localhost' &&
+    window.location.protocol === 'http:'
+) {
     window.location.href = `https://${window.location.href.slice(7)}`
 }
 
@@ -37,54 +40,98 @@ const spinner = mergeStyles({
     overflow: 'hidden',
 })
 
-const Eagle: FunctionComponent = () => {
-    const socket = useRecoilValue(socketState)
-    const [room, setRoom] = useRecoilState(roomState)
-    const onAbort = useAbort()
-    const connectToast = useRef<ReactText>()
+setupLocalMediaListeners()
+
+const Eagle: FC = () => {
+    const [socket, currRoom] = useRemoteState(state => [state.socket, state.room])
+    const [sessionId] = useLocalState(state => [state.sessionId])
+
+    const connectToast = useRef<Id>()
+
     useEffect(() => {
-        // TODO detect browser close to call this fucn
-        // const onCloseWindow = () => {
-        //     socket.emit('leave_room')
-        // }
-        const onRoomJoined = (r: Room) => {
-            const name = r.name || `by ${r.created_by}` || `with id ${r.id}`
-            window.history.pushState({}, 'Mooz', `/room/${r.id}`)
-            setRoom(r)
-            toast(`Joined room ${name}`)
+        if (connectToast.current) return
+        connectToast.current = toast('Connecting to the signalling server...', {
+            autoClose: Timeout.PERSIST,
+        })
+    }, [])
+
+    useEffect(() => {
+        if (currRoom) {
+            document.title = currRoom.name
+        } else {
+            document.title = 'Mooz'
         }
-        const onLeaveRoom = () => {
-            onAbort({ noEmit: true })
+    }, [currRoom])
+
+    const lastClickRef = useRef<CustomEvent<MouseEvent>>()
+    useEffect(() => {
+        const onLeavePage = () => {
+            if (!currRoom) return
+            socket.emit('request:leave_room', {
+                roomId: currRoom.id,
+            })
+        }
+        const onRoomJoined = ({ room }: { room: IRoom }) => {
+            enterRoom(room)
+        }
+        const onRoomLeft = () => {
+            abortRoom()
         }
         const onDisconnect = () => {
-            connectToast.current = toast('Reconnecting socket, chill!', {
+            if (connectToast.current) {
+                dismissToast(connectToast.current)
+            }
+            connectToast.current = toast('Reconnecting to the signalling server...', {
                 autoClose: Timeout.PERSIST,
             })
         }
         const onConnect = () => {
-            const id = sessionStorage.getItem('ID') || nanoid()
-            socket.emit('register', { sessionId: id, roomId: room?.id })
-            sessionStorage.setItem('ID', id)
+            socket.emit('request:register_self', { userId: sessionId, currendRoomId: currRoom?.id })
 
-            toast('Socket connected!', { autoClose: Timeout.SHORT })
             if (connectToast.current) dismissToast(connectToast.current)
             connectToast.current = undefined
-        }
-        socket.on('joined_room', onRoomJoined)
-        socket.on('disconnect', onDisconnect)
-        socket.on('connect', onConnect)
-        socket.on('leave_room', onLeaveRoom)
-        return () => {
-            socket.off('joined_room', onRoomJoined)
-            socket.off('disconnect', onDisconnect)
-            socket.off('connect', onConnect)
-            socket.off('leave_room', onLeaveRoom)
-        }
-    }, [setRoom, socket, room, onAbort])
-    let content: ReactNode
-    if (!room) content = <Landing />
-    else content = <App />
 
+            toast('Connected to the signalling server.', { autoClose: Timeout.SHORT })
+        }
+
+        const clickHandler = (e: MouseEvent) => {
+            if (e.button != 0) return
+
+            const delay = e.timeStamp - (lastClickRef.current?.timeStamp || 0)
+
+            const samePos =
+                e.clientX === lastClickRef.current?.detail.clientX &&
+                e.clientY === lastClickRef.current?.detail.clientY
+            let ev: CustomEvent<MouseEvent>
+            if (samePos && delay < DOUBLE_CLICK_MS) {
+                ev = new CustomEvent('doubleclick', {
+                    detail: e,
+                })
+            } else {
+                ev = new CustomEvent('singleclick', {
+                    detail: e,
+                })
+            }
+            lastClickRef.current = ev
+            document.body.dispatchEvent(ev)
+        }
+
+        document.body.addEventListener('click', clickHandler)
+        window.addEventListener('beforeunload', onLeavePage)
+
+        socket.on('connect', onConnect)
+        socket.on('disconnect', onDisconnect)
+        socket.on('action:room_connection_established', onRoomJoined)
+        socket.on('action:room_connection_terminated', onRoomLeft)
+        return () => {
+            document.body.removeEventListener('click', clickHandler)
+            window.removeEventListener('beforeunload', onLeavePage)
+            socket.off('connect', onConnect)
+            socket.off('disconnect', onDisconnect)
+            socket.off('action:room_connection_established', onRoomJoined)
+            socket.off('action:room_connection_terminated', onRoomLeft)
+        }
+    }, [currRoom, sessionId, socket])
     return (
         <>
             <ToastContainer
@@ -102,27 +149,24 @@ const Eagle: FunctionComponent = () => {
                 draggable
                 pauseOnHover
             />
-            {content}
+            {currRoom ? <App /> : <Landing />}
         </>
     )
 }
 
-ReactDOM.render(
+// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+const root = createRoot(document.getElementById('root')!)
+root.render(
     <React.StrictMode>
-        <RecoilRoot>
-            <ThemeProvider>
-                <DebugObserver />
-                <Suspense fallback={<Spinner label="Loading..." className={spinner} size={3} />}>
-                    <Eagle />
-                </Suspense>
-            </ThemeProvider>
-        </RecoilRoot>
+        <ThemeProvider>
+            <Suspense fallback={<Spinner label="Loading..." className={spinner} size={3} />}>
+                <Eagle />
+            </Suspense>
+        </ThemeProvider>
     </React.StrictMode>,
-    document.getElementById('root'),
 )
 
-// If you want to start measuring performance in your app, pass a function
-// to log results (for example: reportWebVitals(console.log))
-// or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
-// eslint-disable-next-line
-reportWebVitals(console.log)
+if (process.env.NODE_ENV === 'development') {
+    // eslint-disable-next-line no-console
+    reportWebVitals(debug)
+}

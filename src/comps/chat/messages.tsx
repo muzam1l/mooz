@@ -1,19 +1,21 @@
-import { TextField, IconButton, Stack } from '@fluentui/react'
+import { TextField, Stack, TooltipHost } from '@fluentui/react'
 import { nanoid } from 'nanoid'
-import { FunctionComponent, useCallback, useEffect, useRef, useState } from 'react'
-import { useRecoilValue, useSetRecoilState } from 'recoil'
+import { FC, ReactNode, useCallback, useEffect, useRef, useState } from 'react'
 import { messages, fluid } from './styles'
-import { addMessageSelector, Message, preferencesState } from '../../atoms'
+import { IChatMessage, sendChat, useLocalState } from '../../state'
+import { HoverButton } from '../hover-button'
+import { userLabel } from '../../utils/helpers'
 
-const Messages: FunctionComponent = ({ children }) => {
-    const addMessage = useSetRecoilState(addMessageSelector)
-    const { name } = useRecoilValue(preferencesState)
+const Messages: FC<{ children: ReactNode }> = ({ children }) => {
+    const [name, id] = useLocalState(state => [state.preferences.userName, state.sessionId])
     const [message, setMessage] = useState('')
 
     const scrolling = useRef<HTMLDivElement>(null)
     const scrollToBottom = () => {
         const s = scrolling.current
-        s?.scrollTo(0, s?.scrollHeight)
+        if (!s) return
+
+        s.scrollBy({ top: s.scrollHeight, behavior: 'smooth' })
     }
     useEffect(() => {
         scrollToBottom()
@@ -21,15 +23,18 @@ const Messages: FunctionComponent = ({ children }) => {
 
     const handleSubmit = useCallback(() => {
         if (!message.trim()) return
-        const msg: Message = {
+        const msg: IChatMessage = {
             id: nanoid(),
             mine: true,
-            text: message,
-            author: name,
+            text: message.trim().replace(/\n\n/g, '\n'),
+            userLabel: userLabel({
+                userName: name,
+                userId: id,
+            }),
         }
-        addMessage([msg])
+        sendChat(msg)
         setMessage('')
-    }, [message, addMessage, name])
+    }, [id, message, name])
     return (
         <Stack verticalFill verticalAlign="space-between" className={messages.container}>
             <div ref={scrolling} className={messages.children}>
@@ -40,18 +45,25 @@ const Messages: FunctionComponent = ({ children }) => {
                     className={fluid}
                     multiline
                     autoAdjustHeight
-                    placeholder="Type message"
+                    placeholder="Type your message"
                     value={message}
                     onChange={(_, val) => val !== undefined && setMessage(val)}
-                    onKeyPress={e => {
-                        if (e.shiftKey && e.key === 'Enter') handleSubmit()
+                    onKeyDown={e => {
+                        if (e.shiftKey && e.key === 'Enter') {
+                            e.preventDefault()
+                            handleSubmit()
+                        }
                     }}
                 />
-                <IconButton
-                    onClick={handleSubmit}
-                    title="Send (shift+enter)"
-                    iconProps={{ iconName: 'Send' }}
-                />
+                <TooltipHost delay={0} content="shift + enter" id="send-button">
+                    <HoverButton
+                        disabled={!message.trim()}
+                        aria-describedby="send-button"
+                        onClick={handleSubmit}
+                        title="Send"
+                        iconProps={{ iconName: 'Send' }}
+                    />
+                </TooltipHost>
             </Stack.Item>
         </Stack>
     )

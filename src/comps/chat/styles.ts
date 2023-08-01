@@ -17,6 +17,7 @@ export const messages = mergeStyleSets({
         width: '100%',
         height: '100%',
         overflowY: 'auto',
+        position: "relative"
     },
     children: {
         overflowY: 'auto',
@@ -55,8 +56,8 @@ export const useMessageStyles = makeStyles(theme => ({
         borderRadius: '1px',
     },
     title: {
-        fontWeight: FontWeights.light,
-        fontSize: FontSizes.small,
+        fontWeight: FontWeights.semibold,
+        fontSize: FontSizes.smallPlus,
         fontFamily: 'monospace',
         width: '200px',
         textOverflow: 'ellipsis',
@@ -64,6 +65,7 @@ export const useMessageStyles = makeStyles(theme => ({
     text: {
         maxWidth: '100%',
         wordBreak: 'break-word',
+        whiteSpace: 'pre-wrap',
     },
 }))
 

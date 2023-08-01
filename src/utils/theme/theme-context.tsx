@@ -1,26 +1,27 @@
-import { useEffect, useState, createContext, useContext } from 'react'
-import type { FunctionComponent } from 'react'
-import { ThemeProvider } from '@fluentui/react'
-import { darkPalette, defaultTheme } from './themes'
+import { useEffect, useState, createContext } from 'react'
+import type { FC } from 'react'
+import { ThemeProvider, ThemeProviderProps } from '@fluentui/react'
+import { darkTheme, lightTheme } from './themes'
 
-type ThemeType = 'light' | 'dark'
-type SetThemeType = ((arg0: ThemeType) => void) | undefined
+type ColorScheme = 'light' | 'dark'
+type SetColorScheme = (arg0: ColorScheme) => void
 
-const SetThemeContext = createContext<SetThemeType>(undefined)
-const ThemeContext = createContext<ThemeType>('light') // default shouldn't matter here
+export const ColorSchemeContext = createContext<{
+    colorScheme: ColorScheme
+    setColorScheme: SetColorScheme
+}>({ colorScheme: 'dark', setColorScheme: () => {} }) // default shouldn't matter here
 
-const Provider: FunctionComponent = props => {
+const Provider: FC<ThemeProviderProps> = props => {
     // default preference - changed to dark
     const prefersDark = true
-        // window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+    // window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
 
-    const [theme, setTheme] = useState<ThemeType>(prefersDark ? 'dark' : 'light')
-
+    const [colorScheme, setColorScheme] = useState<ColorScheme>(prefersDark ? 'dark' : 'light')
     // set listener fot theme change
     useEffect(() => {
         const listener = (ev: MediaQueryListEvent) => {
             const newTheme = ev.matches ? 'dark' : 'light'
-            setTheme(newTheme)
+            setColorScheme(newTheme)
         }
         window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', listener)
         return () =>
@@ -29,24 +30,12 @@ const Provider: FunctionComponent = props => {
                 .removeEventListener('change', listener)
     }, [])
 
-    const palette = theme === 'dark' ? darkPalette : {}
+    const palette = colorScheme === 'dark' ? darkTheme : lightTheme
     return (
-        <SetThemeContext.Provider value={setTheme}>
-            <ThemeContext.Provider value={theme}>
-                <ThemeProvider
-                    applyTo="body"
-                    theme={{
-                        ...defaultTheme,
-                        ...palette,
-                    }}
-                    {...props} // eslint-disable-line
-                />
-            </ThemeContext.Provider>
-        </SetThemeContext.Provider>
+        <ColorSchemeContext.Provider value={{ setColorScheme, colorScheme }}>
+            <ThemeProvider applyTo="body" theme={palette} {...props} />
+        </ColorSchemeContext.Provider>
     )
 }
 
 export default Provider
-
-export const useSetTheme = (): SetThemeType => useContext(SetThemeContext)
-export const useTheme = (): ThemeType => useContext(ThemeContext)

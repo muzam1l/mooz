@@ -5,29 +5,34 @@ import {
     IPanelStyles,
     IPivotStyles,
     makeStyles,
-    mergeStyles,
+    mergeStyleSets,
 } from '@fluentui/react'
 
-export const vFluid = mergeStyles({
-    height: '100%',
-})
-
-export const vScroll = mergeStyles({
-    height: '100%',
-    overflowY: 'auto',
-    overflowX: 'hidden',
-})
-export const heading = mergeStyles({
-    margin: '.15em .5em',
-    fontWeight: FontWeights.semilight,
-})
-export const fluid = mergeStyles({
-    width: '100%',
-})
-export const pivotContainer = mergeStyles({
-    display: 'flex',
-    flexDirection: 'column-reverse',
-    height: '100%',
+export const classes = mergeStyleSets({
+    heading: {
+        margin: '.15em .5em',
+        fontWeight: FontWeights.semilight,
+    },
+    fluid: {
+        width: '100%',
+    },
+    pivotContainer: {
+        display: 'flex',
+        flexDirection: 'column-reverse',
+        height: '100%',
+    },
+    personContainer: {
+        width: "100%"
+    },
+    vScroll: {
+        height: '100%',
+        overflowY: 'auto',
+        overflowX: 'hidden',
+    },
+    searchbox: {
+        margin: '.5em auto',
+        width: '100%',
+    }
 })
 export const pivotStyles: Partial<IPivotStyles> = {
     root: {
@@ -59,30 +64,19 @@ export const panelStyles: Partial<IPanelStyles> = {
     },
 }
 
-export const message = mergeStyles({
-    height: '100%',
-    fontSize: FontSizes.xLarge,
-    fontWeight: FontWeights.semilight,
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: '.25em',
-    textAlign: 'center',
-})
-
 export const useModalClassnames = makeStyles(theme => ({
     container: {
         display: 'flex',
         flexFlow: 'column nowrap',
         alignItems: 'stretch',
-        maxWidth: '700px',
+        width: '500px',
         maxHeight: '500px',
     },
     header: [
         {
             flex: '1 1 auto',
             borderTop: `4px solid ${theme.palette.themePrimary}`,
+            background: theme.palette.neutralLighterAlt,
             color: theme.palette.neutralPrimary,
             display: 'flex',
             alignItems: 'center',
@@ -96,11 +90,14 @@ export const useModalClassnames = makeStyles(theme => ({
         flex: '4 4 auto',
         padding: '0 1em',
         overflowY: 'auto',
-        height: '100%',
+        height: '300px',
         width: '500px',
     },
 }))
 export const modalStyles: Partial<IModalStyles> = {
+    main: {
+        minWidth: 500,
+    },
     scrollableContent: {
         display: 'flex',
         flexDirection: 'column',
@@ -118,8 +115,3 @@ export const useCloseButtonStyles = makeStyles(theme => ({
         color: theme.palette.neutralDark,
     },
 }))
-
-export const searchbox = mergeStyles({
-    margin: '.5em auto',
-    width: '100%',
-})

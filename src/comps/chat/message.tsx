@@ -1,4 +1,4 @@
-import { FunctionComponent } from 'react'
+import { FC } from 'react'
 import { Text } from '@fluentui/react'
 import { myMessageStyle, useMessageStyles } from './styles'
 
@@ -8,7 +8,7 @@ export interface MessageProps {
     title?: string
 }
 
-const Message: FunctionComponent<MessageProps> = ({ mine, text, title }) => {
+const Message: FC<MessageProps> = ({ mine, text, title }) => {
     const styles = useMessageStyles()
     return (
         <div className={styles.container}>

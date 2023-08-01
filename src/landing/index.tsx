@@ -1,16 +1,15 @@
-import { FunctionComponent, useEffect } from 'react'
-import { Stack, Text, Pivot, PivotItem, IPivotStyles } from '@fluentui/react'
+import { FC, useEffect } from 'react'
+import { Stack, Pivot, PivotItem, IPivotStyles } from '@fluentui/react'
 import fscreen from 'fscreen'
 import VideoPreview from './preview'
 import CreateMeeting from './create'
 import JoinMeeting from './join'
-import { container, containerInner, heading, mr4, options } from './styles'
+import { classes } from './styles'
+import { commonClasses } from '../utils/theme/common-styles'
+import Header from './header'
+import { getLandingDefaults } from '../state'
 
 const pivotStyles: Partial<IPivotStyles> = {
-    root: {
-        // display: 'flex',
-        // justifyContent: 'center'
-    },
     itemContainer: {
         padding: '.5em',
         width: '300px',
@@ -18,47 +17,41 @@ const pivotStyles: Partial<IPivotStyles> = {
     },
 }
 
-const Landing: FunctionComponent = () => {
-    let defaultKey = 'create'
-    let defaultId: string | undefined
-    const path = window.location.pathname
-    const REGEX = /^\/room\/(?<id>[0-9a-zA-Z-_]+)/
-    const match = path.match(REGEX)
-    if (match) {
-        defaultKey = 'join'
-        defaultId = match.groups?.id
-    }
+const Landing: FC = () => {
     useEffect(() => {
         if (fscreen.fullscreenElement) fscreen.exitFullscreen()
     }, [])
     return (
-        <Stack className={container} horizontalAlign="center">
-            <Stack.Item className={containerInner}>
-                <Text className={heading} variant="superLarge">
-                    Welcome to mooz
-                </Text>
-                <Stack horizontalAlign="center" horizontal wrap>
-                    <Stack.Item className={mr4} grow>
-                        <Pivot
-                            defaultSelectedKey={defaultKey}
-                            className={options}
-                            styles={pivotStyles}
-                            aria-label="Create or join a meeting"
-                        >
-                            <PivotItem itemKey="create" headerText="Create new meeting">
-                                <CreateMeeting />
-                            </PivotItem>
-                            <PivotItem itemKey="join" headerText="Join a meeting">
-                                <JoinMeeting defaultId={defaultId} />
-                            </PivotItem>
-                        </Pivot>
-                    </Stack.Item>
-                    <Stack.Item>
-                        <VideoPreview />
-                    </Stack.Item>
-                </Stack>
-            </Stack.Item>
-        </Stack>
+        <>
+            <Header />
+            <Stack className={classes.app} horizontalAlign="center">
+                <Stack.Item className={classes.containerInner}>
+                    <div className={classes.tagline}>
+                        Create or join a peer-to-peer meeting instantly
+                    </div>
+                    <Stack className={classes.main} horizontalAlign="center" horizontal>
+                        <Stack.Item className={commonClasses.mr4}>
+                            <Pivot
+                                defaultSelectedKey={getLandingDefaults().key}
+                                className={classes.options}
+                                styles={pivotStyles}
+                                aria-label="Create or join a meeting"
+                            >
+                                <PivotItem itemKey="create" headerText="Create new meeting">
+                                    <CreateMeeting />
+                                </PivotItem>
+                                <PivotItem itemKey="join" headerText="Join a meeting">
+                                    <JoinMeeting />
+                                </PivotItem>
+                            </Pivot>
+                        </Stack.Item>
+                        <Stack.Item>
+                            <VideoPreview />
+                        </Stack.Item>
+                    </Stack>
+                </Stack.Item>
+            </Stack>
+        </>
     )
 }
 

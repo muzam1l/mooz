@@ -1,57 +1,63 @@
 import { useCallback } from 'react'
 import { Panel, Pivot, PivotItem, Stack } from '@fluentui/react'
 import type { IRenderFunction, IPanelProps } from '@fluentui/react'
-import ChatPanel from './chat'
+import ChatPanel from './chats'
 import PeoplePanel from './people'
-import { fluid, heading, panelStyles, pivotContainer, pivotStyles } from './styles'
+import { classes, panelStyles, pivotStyles } from './styles'
+import { useLocalState } from '../../state'
+import { capitalize } from '../../utils/helpers'
 
-type IPanelHeaders = 'people' | 'chat' | ''
+interface SidePanelProps {}
 
-interface SidePanelProps {
-    onDismiss: () => void
-    panel: IPanelHeaders
-    setPanel: (arg0: IPanelHeaders) => void
-}
+const SidePanel: React.FC<SidePanelProps> = () => {
+    const [panel] = useLocalState(state => [state.sidePanelTab])
+    const setPanel = (sidePanelTab: typeof panel) =>
+        useLocalState.setState({
+            sidePanelTab,
+        })
 
-const SidePanel: React.FunctionComponent<SidePanelProps> = ({ panel, onDismiss, setPanel }) => {
-    const title = panel && panel[0].toLocaleUpperCase() + panel.slice(1)
+    const keys: NonNullable<typeof panel>[] = ['chats', 'people']
+
+    const title = capitalize(panel)
     const onRenderNavigationContent: IRenderFunction<IPanelProps> = useCallback(
         (props, defaultRender) => (
-            <Stack className={fluid} horizontal horizontalAlign="space-between">
-                <h1 className={heading}>{title}</h1>
+            <Stack className={classes.fluid} horizontal horizontalAlign="space-between">
+                <h1 className={classes.heading}>{title}</h1>
                 {defaultRender?.(props)}
             </Stack>
         ),
         [title],
     )
+    console.log(panel)
     return (
         <div>
             <Panel
                 styles={panelStyles}
                 onRenderNavigationContent={onRenderNavigationContent}
                 isHiddenOnDismiss
-                // this prop makes the panel non-modal
                 isBlocking={false}
                 isOpen={!!panel}
-                onDismiss={onDismiss}
+                onDismiss={() => setPanel(undefined)}
                 closeButtonAriaLabel="Close"
-                isFooterAtBottom // for gull height
+                isFooterAtBottom // for full height
             >
                 <Pivot
-                    selectedKey={panel}
+                    selectedKey={panel || keys[0]}
                     onLinkClick={item => {
-                        const key = item?.props.itemKey as IPanelHeaders
-                        if (key) setPanel(key)
+                        const key = item?.props.itemKey as typeof panel
+                        if (key) {
+                            setPanel(key)
+                        }
                     }}
-                    className={pivotContainer}
+                    className={classes.pivotContainer}
                     styles={pivotStyles}
-                    aria-label="Switch between Chat and People list"
+                    aria-label="Switch between Chats and People list"
                 >
-                    <PivotItem alwaysRender itemKey="people" itemIcon="People" headerText="People">
-                        <PeoplePanel />
+                    <PivotItem alwaysRender itemKey={keys[0]} itemIcon="Chat" headerText="Chats">
+                        <ChatPanel />
                     </PivotItem>
-                    <PivotItem alwaysRender itemKey="chat" itemIcon="Chat" headerText="Chat">
-                        <ChatPanel setPanel={setPanel} />
+                    <PivotItem alwaysRender itemKey={keys[1]} itemIcon="People" headerText="People">
+                        <PeoplePanel />
                     </PivotItem>
                 </Pivot>
             </Panel>

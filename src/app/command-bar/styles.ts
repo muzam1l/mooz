@@ -1,44 +1,43 @@
 import { FontSizes, FontWeights, mergeStyles } from '@fluentui/react'
-// eslint-disable-next-line import/no-extraneous-dependencies
-import { NeutralColors } from '@fluentui/theme'
-import type { IButtonStyles, ICommandBarStyles } from '@fluentui/react'
-
-export const buttonStyles: IButtonStyles = {
-    icon: {
-        fontSize: FontSizes.xLarge,
-    },
-}
+import type { ICommandBarStyles } from '@fluentui/react'
+import { darkTheme, lightTheme } from '../../utils/theme/themes'
+import { COMMANDBAR_HEIGHT } from '../../state'
 
 export const lightOption = mergeStyles({
-    backgroundColor: NeutralColors.gray30,
-    '& :hover': {
-        backgroundColor: NeutralColors.gray20,
+    "&, & button": {
+        color: lightTheme.semanticColors.bodyText,
+        backgroundColor: lightTheme.semanticColors.bodyBackground,
     },
-    '& button, & button:hover': {
-        color: NeutralColors.black,
-    },
+    '& button:hover, & button:focus': {
+        color: lightTheme.semanticColors.bodyText,
+        backgroundColor: `${lightTheme.semanticColors.bodyBackgroundHovered} !important`
+    }
 })
 export const darkOption = mergeStyles({
-    backgroundColor: NeutralColors.gray140,
-    '& :hover': {
-        backgroundColor: NeutralColors.gray150,
+    "&, & button": {
+        color: darkTheme.semanticColors.bodyText,
+        backgroundColor: darkTheme.semanticColors.bodyBackground,
     },
-    '& button, & button:hover': {
-        color: NeutralColors.white,
-    },
+    '& button:hover, & button:focus': {
+        color: darkTheme.semanticColors.bodyText,
+        backgroundColor: `${darkTheme.semanticColors.bodyBackgroundHovered} !important`
+    }
 })
 
-export const containerStyles: ICommandBarStyles = {
+export const commandbarStyles: ICommandBarStyles = {
     root: {
         padding: '0 .5em',
-        height: '40px',
+        margin: ".25em 0",
+        height: COMMANDBAR_HEIGHT,
+        borderRadius: 0
     },
 }
 
-export const LeaveButtonStyles = {
+export const leaveButtonStyles = {
     root: {
         margin: 'auto .5em',
         transition: 'all .1s ease',
+        height: "100%"
     },
     rootHovered: {
         backgroundColor: '#CE0B1B',
@@ -47,5 +46,17 @@ export const LeaveButtonStyles = {
     label: {
         fontSize: FontSizes.mediumPlus,
         fontWeight: FontWeights.regular,
+    },
+}
+export const copyButtonStyles = {
+    root: {
+        fontWeight: FontWeights.bold,
+        margin: 'auto .5em',
+        transition: 'all .1s ease',
+        height: "100%"
+    },
+    label: {
+        fontSize: FontSizes.small,
+        fontWeight: FontWeights.semibold,
     },
 }
