@@ -20,6 +20,7 @@ import 'react-toastify/dist/ReactToastify.css'
 import { DOUBLE_CLICK_MS } from './state/constants'
 import { debug } from './utils/helpers'
 
+console.log('process', process)
 window.process = process
 
 // enforce https in production
