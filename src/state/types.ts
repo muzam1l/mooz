@@ -1,19 +1,23 @@
 import { Socket } from 'socket.io-client'
 import Peer from 'simple-peer'
 import { RefObject } from 'react'
-import type { IServerToClientEvent, IRoom, IClientToServerEvent } from '../../server/types'
-export * from '../../server/types'
+import type {
+  IServerToClientEvent,
+  IRoom,
+  IClientToServerEvent,
+} from '@server/types'
+export * from '@server/types'
 
 // TODO Enum keys to reduce socket payload.
 export type ISocketMessageData =
   | {
-    connection: true
-    userName: string
-  }
+      connection: true
+      userName: string
+    }
   | {
-    sdpSignal: unknown
-    metaData: ConnectionMetaData
-  }
+      sdpSignal: unknown
+      metaData: ConnectionMetaData
+    }
 
 type ConnectionMetaData = {
   screenStreamId: string
@@ -86,7 +90,10 @@ export interface ILocalState {
 }
 
 export interface IRemoteState {
-  socket: Socket<IServerToClientEvent<ISocketMessageData>, IClientToServerEvent<ISocketMessageData>>
+  socket: Socket<
+    IServerToClientEvent<ISocketMessageData>,
+    IClientToServerEvent<ISocketMessageData>
+  >
   room: IRoom | null
   connections: IConnection[]
 }

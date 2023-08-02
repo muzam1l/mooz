@@ -11,7 +11,7 @@
         "@testing-library/jest-dom": "^5.11.8",
         "@testing-library/react": "^11.2.3",
         "@testing-library/user-event": "^12.6.0",
-        "fscreen": "^1.1.0",
+        "fscreen": "^1.2.0",
         "nanoid": "^3.1.20",
         "process": "^0.11.10",
         "react": "^18.2.0",
@@ -21,11 +21,11 @@
         "simple-peer": "^9.11.1",
         "socket.io-client": "^4.7.1",
         "web-vitals": "^0.2.4",
-        "zustand": "^4.3.9"
+        "zustand": "^4.4.0"
     },
     "scripts": {
-        "dev": "react-scripts start",
-        "build": "npm run format && npm run lint && react-scripts build",
+        "dev": "craco start",
+        "build": "npm run format && npm run lint && craco build",
         "format": "prettier --write src",
         "lint": "eslint src"
     },
@@ -48,6 +48,8 @@
         ]
     },
     "devDependencies": {
+        "@craco/craco": "^7.1.0",
+        "@craco/types": "^7.1.0",
         "@types/fscreen": "^1.0.1",
         "@types/jest": "^26.0.20",
         "@types/react": "^18.2.15",
@@ -64,6 +66,7 @@
         "eslint-plugin-react": "^7.33.0",
         "eslint-plugin-react-hooks": "^4.6.0",
         "prettier": "^3.0.0",
+        "react-app-alias": "^2.2.2",
         "typescript": "^5.1.6"
     }
 }
