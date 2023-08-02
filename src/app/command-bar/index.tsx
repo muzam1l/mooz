@@ -63,7 +63,7 @@ const CommandButton: FC<ICommandBarItemProps> = (
         data={data}
         className={className}
         split={split}
-        onClick={onClick as any}
+        onClick={onClick as () => void}
         disabled={disabled}
         styles={styles}
         iconProps={iconProps}
@@ -92,7 +92,7 @@ const OverflowButton: FC<IButtonProps> = ({
     disabled={disabled}
     iconOnly
     subMenuProps={subMenuProps}
-    onClick={onClick as any}
+    onClick={onClick as () => void}
     ariaLabel="More commands"
     tooltipHostProps={{
       content: 'Open menu',
