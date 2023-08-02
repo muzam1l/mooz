@@ -1,47 +1,23 @@
 import { Socket } from 'socket.io-client'
 import Peer from 'simple-peer'
 import { RefObject } from 'react'
-
-type Ev<T extends object = object> = (
-  opts: T,
-  cb?: (arg0: { error: string | null }) => void,
-) => void
-
-type ConnectionMetaData = {
-  screenStreamId: string
-  userStreamId: string
-}
+import type { IServerToClientEvent, IRoom, IClientToServerEvent } from '../../server/types'
+export * from '../../server/types'
 
 // TODO Enum keys to reduce socket payload.
 export type ISocketMessageData =
   | {
-      connection: true
-      userName: string
-    }
+    connection: true
+    userName: string
+  }
   | {
-      sdpSignal: unknown
-      metaData: ConnectionMetaData
-    }
+    sdpSignal: unknown
+    metaData: ConnectionMetaData
+  }
 
-export interface IServerToClientEvent {
-  'action:room_connection_established': Ev<{ room: IRoom }>
-  'action:room_connection_terminated': Ev<{ roomId: string }>
-
-  'action:establish_peer_connection': Ev<{ userName: string; userId: string }>
-  'action:terminate_peer_connection': Ev<{ userId: string }>
-
-  'action:message_received': Ev<{ from: string; data: ISocketMessageData }>
-}
-
-export interface IClientToServerEvent {
-  'request:register_self': Ev<{ userId: string; currendRoomId?: string }>
-
-  'request:create_room': Ev<{ room: IRoom }>
-  'request:join_room': Ev<{ userName: string; roomId: string }>
-  'request:leave_room': Ev<{ roomId: string }>
-
-  'request:send_mesage': Ev<{ to: string; data: ISocketMessageData }>
-  'request:report_person_left': Ev<{ userId: string; roomId: string }>
+type ConnectionMetaData = {
+  screenStreamId: string
+  userStreamId: string
 }
 
 export interface IChatState {
@@ -110,7 +86,7 @@ export interface ILocalState {
 }
 
 export interface IRemoteState {
-  socket: Socket<IServerToClientEvent, IClientToServerEvent>
+  socket: Socket<IServerToClientEvent<ISocketMessageData>, IClientToServerEvent<ISocketMessageData>>
   room: IRoom | null
   connections: IConnection[]
 }
@@ -120,15 +96,6 @@ export interface IChatMessage {
   text: string
   userLabel: string
   mine?: boolean
-}
-
-export interface IRoom {
-  id: string
-  created_by?: string
-  name: string
-  opts?: {
-    capacity?: number
-  }
 }
 
 export interface IConnection {

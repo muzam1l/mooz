@@ -4,13 +4,15 @@
     "module": "commonjs",
     "sourceMap": false,
     "outDir": "./lib",
+    "rootDir": "./",
+    "declaration": false,
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
   },
   "include": [
-    "./"
+    "./index.ts"
   ],
   "exclude": []
 }

@@ -2,9 +2,9 @@ import { createServer } from 'http'
 import { Server, ServerOptions } from 'socket.io'
 import { nanoid } from 'nanoid'
 import NodeCache from 'node-cache'
-import type { IServerToClientEvent, IClientToServerEvent, IRoom } from '../src/state/types'
 
 import 'dotenv/config'
+import { IClientToServerEvent, IPerson, IRoom, IServerRoom, IServerToClientEvent } from './types'
 
 console.log("allow", process.env.ALLOW_ORIGIN)
 const serverOpts: Partial<ServerOptions> = {
@@ -28,14 +28,6 @@ const roomsCache = new NodeCache({
 const peopleCache = new NodeCache({
     stdTTL,
 })
-
-interface IPerson {
-    userId: string
-}
-
-type IServerRoom = {
-    userIds: string[]
-} & IRoom
 
 class Rooms {
     private static internalKeys: [keyof Omit<IServerRoom, keyof IRoom>] = ["userIds"]

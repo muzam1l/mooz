@@ -4,8 +4,8 @@ import {
   Stream,
   type IConnection,
   type IRemoteState,
-  type IRoom,
-  IPeerData,
+  type IPeerData,
+  IRoom,
 } from './types'
 import { debug, transformSdp, userLabel } from '../utils/helpers'
 import toast, { Timeout, ToastType } from '../comps/toast'
