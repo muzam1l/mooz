@@ -226,26 +226,6 @@ io.on('connection', socket => {
         }
     })
 
-    // TODO
-    socket.on("request:report_person_left", ({ userId, roomId }, cb) => {
-        try {
-            io.to(userId).emit("action:room_connection_terminated", {
-                roomId
-            })
-            io.to(roomId).emit("action:terminate_peer_connection", {
-                userId,
-            })
-            Rooms.removeUser(roomId, userId)
-            if (Rooms.size(roomId) === 0) {
-                Rooms.delete(roomId)
-            }
-            cb?.({ error: null })
-        } catch (err) {
-            console.error('Error in request:report_person_left!', err)
-            cb?.({ error: GENERIC_ERROR_MSG })
-        }
-    })
-
     socket.on("request:send_mesage", ({ to, data }, cb) => {
         const { userId } = peopleCache.get<IPerson>(socket.id) || {}
         if (!userId) return
