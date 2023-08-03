@@ -126,8 +126,8 @@ export const Media: FC = () => {
             {gridItems.map(props => (
               <div
                 style={{
-                  width: gridItemWidth - 10,
-                  height: gridItemHeight - 10,
+                  width: gridItemWidth - 15,
+                  height: gridItemHeight - 15,
                 }}
                 key={props.stream.id}
               >

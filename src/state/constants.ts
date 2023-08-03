@@ -14,5 +14,5 @@ export const MIN_MEDIA_GRID_WIDTH = MIN_MEDIA_GRID_HEIGHT * ASPECT_RATIO
 export const DOUBLE_CLICK_MS = 300
 
 export const MAX_BANDWIDTH = 2048
-export const MIN_BANDWIDTH = 225
-export const VIDEO_RESOLUTION = 480
+export const MIN_BANDWIDTH = 256
+export const VIDEO_RESOLUTION = 560

@@ -21,6 +21,7 @@
         "simple-peer": "^9.11.1",
         "socket.io-client": "^4.7.1",
         "web-vitals": "^0.2.4",
+        "webrtc-adapter": "^8.2.3",
         "zustand": "^4.4.0"
     },
     "scripts": {

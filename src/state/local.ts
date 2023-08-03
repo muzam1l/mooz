@@ -112,8 +112,7 @@ export const startMediaDevice = async (device: MediaDeviceInfo) => {
       },
       video: {
         deviceId: device.deviceId,
-        height: VIDEO_RESOLUTION,
-        width: VIDEO_RESOLUTION * ASPECT_RATIO,
+        height: { ideal: VIDEO_RESOLUTION },
         aspectRatio: ASPECT_RATIO,
         noiseSuppression: true,
       },
@@ -192,18 +191,17 @@ export const startScreenCapture = async () => {
   }
 }
 
-
 const enterRoom = {
   src: '/sounds/enter-room.mp3',
-  volume: 0.2
+  volume: 0.2,
 }
 const leaveRoom = {
   src: '/sounds/abort-room.mp3',
-  volume: 0.1
+  volume: 0.1,
 }
 const chatReceived = {
   src: '/sounds/chat-received.mp3',
-  volume: 0.3
+  volume: 0.3,
 }
 
 // User interaction hack!

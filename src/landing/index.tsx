@@ -5,7 +5,6 @@ import VideoPreview from './preview'
 import CreateMeeting from './create'
 import JoinMeeting from './join'
 import { classes } from './styles'
-import { commonClasses } from '../utils/theme/common-styles'
 import Header from './header'
 import { getLandingDefaults } from '../state'
 
@@ -30,7 +29,7 @@ const Landing: FC = () => {
             Create or join a peer-to-peer meeting instantly
           </div>
           <Stack className={classes.main} horizontalAlign="center" horizontal>
-            <Stack.Item className={commonClasses.mr4}>
+            <Stack.Item className={classes.formContainer}>
               <Pivot
                 defaultSelectedKey={getLandingDefaults().key}
                 className={classes.options}

@@ -9,9 +9,12 @@ export const classes = mergeStyleSets({
   },
   containerInner: {
     margin: 'auto',
+    "@media (max-width: 768px)": {
+      paddingBottom: '6em',
+    }
   },
   tagline: {
-    margin: '0 .25em .25em',
+    padding: '.25em',
     textAlign: 'center',
     display: 'block',
     fontSize: FontSizes.xxLargePlus,
@@ -23,7 +26,7 @@ export const classes = mergeStyleSets({
     minWidth: '50%',
   },
   preview: {
-    padding: '1em',
+    padding: '.5em 1em',
     width: 300,
     position: 'relative',
   },
@@ -40,12 +43,12 @@ export const classes = mergeStyleSets({
     animation: `${fadeIn} .75s ease`,
   },
   main: {
-    height: '300px',
+    height: '255px',
     '@media (max-width: 768px)': {
       flexDirection: 'column',
-      justifyContent: 'center',
+      justifyContent: 'flex-start',
       alignItems: 'center',
-      height: '550px',
+      height: '500px',
     },
   },
   header: {
@@ -60,5 +63,8 @@ export const classes = mergeStyleSets({
     fontSize: FontSizes.large,
     fontWeight: FontWeights.bold,
     userSelect: 'none',
+  },
+  formContainer: {
+    padding: '0 1em',
   },
 })

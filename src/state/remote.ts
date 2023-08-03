@@ -14,6 +14,7 @@ import { useJoinFormState } from './landing'
 import Peer from 'simple-peer'
 import { MAX_BANDWIDTH, MIN_BANDWIDTH } from './constants'
 import { onChatReceived } from './chat'
+import adapter from 'webrtc-adapter'
 
 export const createSocket = () => {
   const serverPort = process.env.REACT_APP_SAME_ORIGIN_SOCKET_PORT
@@ -28,7 +29,7 @@ export const createSocket = () => {
 
   socket.onAny((event, ...args) => {
     debug(`socket.io: got event '${event}' with args:`, ...args)
-  });
+  })
 
   return socket
 }
@@ -75,10 +76,44 @@ export const setupLocalMediaListeners = () => {
   })
 }
 
-export const createPeerInstance = (opts: Peer.Options, num: number) => {
-  const bandwidth = Math.max(MAX_BANDWIDTH / Math.sqrt(num + 1), MIN_BANDWIDTH)
+export const createPeerInstance = (opts: Peer.Options) => {
   return new Peer({
-    sdpTransform: (sdp: string) => transformSdp(sdp, bandwidth),
+    sdpTransform: function transform(sdp) {
+      const { connections } = useRemoteState.getState()
+      const bandwidth = Math.max(MAX_BANDWIDTH / (connections.length || 1), MIN_BANDWIDTH) >>> 0
+
+      // In modern browsers, use RTCRtpSender.setParameters to change bandwidth without
+      // (local) renegotiation. Note that this will be within the envelope of
+      // the initial maximum bandwidth negotiated via SDP.
+      if ((adapter.browserDetails.browser === 'chrome' ||
+        adapter.browserDetails.browser === 'safari' ||
+        (adapter.browserDetails.browser === 'firefox' &&
+          adapter.browserDetails.version &&
+          adapter.browserDetails.version >= 64)) &&
+        'RTCRtpSender' in window &&
+        'setParameters' in window.RTCRtpSender.prototype) {
+        connections.forEach(({ peerInstance }) => {
+          // USING INTERNAL API OF SIMPLE-PEER HERE, HOPEFULLY IT DOESN'T CHANGE!
+          const sender = (peerInstance as unknown as { _pc?: RTCPeerConnection })._pc?.getSenders()[0];
+          if (!sender) return;
+          const parameters = sender.getParameters();
+          if (!parameters.encodings || !parameters.encodings.length) {
+            return 
+          }
+          const encoding = parameters.encodings[0];
+          if (encoding.maxBitrate !== bandwidth * 1000) {
+            encoding.maxBitrate = bandwidth * 1000;
+            sender.setParameters(parameters);
+          }
+        })
+
+        return sdp;
+      }
+
+      // Fallback to the SDP changes with local renegotiation as way of limiting
+      // the bandwidth.
+      return transformSdp(sdp, bandwidth, this)
+    },
     ...opts,
   })
 }
@@ -112,7 +147,6 @@ export const createRemoteConnection = ({
     {
       initiator,
     },
-    state.connections.length,
   )
 
   const connection: IConnection = {
@@ -165,6 +199,7 @@ export const createRemoteConnection = ({
       body: err.message,
       autoClose: Timeout.MEDIUM,
     })
+    console.error(err)
 
     socket.emit('request:leave_room', {
       // eslint-disable-next-line @typescript-eslint/no-non-null-asserted-optional-chain

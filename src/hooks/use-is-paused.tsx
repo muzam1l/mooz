@@ -21,7 +21,7 @@ export const useIsPaused = (
     }
     video.addEventListener('pause', onPaused)
     video.addEventListener('play', onPlay)
-    return () => { 
+    return () => {
       video.removeEventListener('pause', onPaused)
       video.removeEventListener('play', onPlay)
     }

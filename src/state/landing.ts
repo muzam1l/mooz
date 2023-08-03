@@ -40,7 +40,7 @@ export interface CreateFormState {
 }
 
 export const useCreateFormState = create<CreateFormState>()(() => ({
-  capacity: '5',
+  capacity: '10',
   meetingName: useLocalState.getState().preferences.meetingName || '',
   userName: useLocalState.getState().preferences.userName || '',
   loading: false,

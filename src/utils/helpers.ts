@@ -1,14 +1,21 @@
+import type { Instance } from 'simple-peer'
+import adapter from 'webrtc-adapter';
+
 type Maybe<T> = T | null | undefined
 
-export function transformSdp(sdp: string, bandwidth: number) {
-  // follow unified plan, fuck older browsers
-  const modifier = 'TIAS'
-  bandwidth = (bandwidth >>> 0) * 1000
-
-  sdp = sdp.replace(new RegExp('b=' + modifier + ':.*\r\n'), '')
-  sdp = sdp.replace(/(m=video.*\r\n)/g, `$1b=${modifier}:${bandwidth}\r\n`)
-
-  return sdp
+export function transformSdp(sdp: string, bandwidth: number, _?: Instance) {
+  let modifier = 'AS';
+  if (adapter.browserDetails.browser === 'firefox') {
+    bandwidth = (bandwidth >>> 0) * 1000;
+    modifier = 'TIAS';
+  }
+  if (sdp.indexOf('b=' + modifier + ':') === -1) {
+    // insert b= after c= line.
+    sdp = sdp.replace(/c=IN (.*)\r\n/, 'c=IN $1\r\nb=' + modifier + ':' + bandwidth + '\r\n');
+  } else {
+    sdp = sdp.replace(new RegExp('b=' + modifier + ':.*\r\n'), 'b=' + modifier + ':' + bandwidth + '\r\n');
+  }
+  return sdp;
 }
 
 export const capitalize = (str?: Maybe<string>) => {
