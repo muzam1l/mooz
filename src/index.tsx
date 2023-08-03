@@ -86,11 +86,6 @@ const Eagle: FC = () => {
       })
     }
     const onConnect = () => {
-      socket.emit('request:register_self', {
-        userId: sessionId,
-        currendRoomId: currRoom?.id,
-      })
-
       if (connectToast.current) dismissToast(connectToast.current)
       connectToast.current = undefined
 

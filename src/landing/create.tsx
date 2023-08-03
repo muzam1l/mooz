@@ -51,11 +51,11 @@ const CreateMeeting: FC = () => {
           capacity: parseInt(capacity) || 0,
         },
       }
-      socket.emit('request:create_room', { room }, ({ error: err }) => {
+      socket.emit('request:create_room', { room }, err => {
         // on success it should redirect to main app via 'joined_room' event listened in src/index
         if (err) {
           setState({
-            error: err,
+            error: err.message,
           })
         }
         setState({

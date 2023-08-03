@@ -30,6 +30,7 @@ const toast = (text: string, options?: IToastOptions) => {
       messageBarType={type}
       truncated
       isMultiline={true}
+      style={{ width: '100%' }}
     >
       {text}
       {body && (

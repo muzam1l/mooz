@@ -25,6 +25,15 @@ export const createSocket = () => {
 
   const socket = io(url, {
     withCredentials: !!process.env.REACT_APP_SOCKET_URL,
+    auth(cb) {
+      const { sessionId } = useLocalState.getState()
+      // eslint-disable-next-line @typescript-eslint/no-use-before-define
+      const { id: currentRoomId } = useRemoteState.getState().room || {}
+      cb({
+        sessionId,
+        currentRoomId,
+      })
+    },
   })
 
   socket.onAny((event, ...args) => {
@@ -80,34 +89,39 @@ export const createPeerInstance = (opts: Peer.Options) => {
   return new Peer({
     sdpTransform: function transform(sdp) {
       const { connections } = useRemoteState.getState()
-      const bandwidth = Math.max(MAX_BANDWIDTH / (connections.length || 1), MIN_BANDWIDTH) >>> 0
+      const bandwidth =
+        Math.max(MAX_BANDWIDTH / (connections.length || 1), MIN_BANDWIDTH) >>> 0
 
       // In modern browsers, use RTCRtpSender.setParameters to change bandwidth without
       // (local) renegotiation. Note that this will be within the envelope of
       // the initial maximum bandwidth negotiated via SDP.
-      if ((adapter.browserDetails.browser === 'chrome' ||
-        adapter.browserDetails.browser === 'safari' ||
-        (adapter.browserDetails.browser === 'firefox' &&
-          adapter.browserDetails.version &&
-          adapter.browserDetails.version >= 64)) &&
+      if (
+        (adapter.browserDetails.browser === 'chrome' ||
+          adapter.browserDetails.browser === 'safari' ||
+          (adapter.browserDetails.browser === 'firefox' &&
+            adapter.browserDetails.version &&
+            adapter.browserDetails.version >= 64)) &&
         'RTCRtpSender' in window &&
-        'setParameters' in window.RTCRtpSender.prototype) {
+        'setParameters' in window.RTCRtpSender.prototype
+      ) {
         connections.forEach(({ peerInstance }) => {
           // USING INTERNAL API OF SIMPLE-PEER HERE, HOPEFULLY IT DOESN'T CHANGE!
-          const sender = (peerInstance as unknown as { _pc?: RTCPeerConnection })._pc?.getSenders()[0];
-          if (!sender) return;
-          const parameters = sender.getParameters();
+          const sender = (
+            peerInstance as unknown as { _pc?: RTCPeerConnection }
+          )._pc?.getSenders()[0]
+          if (!sender) return
+          const parameters = sender.getParameters()
           if (!parameters.encodings || !parameters.encodings.length) {
-            return 
+            return
           }
-          const encoding = parameters.encodings[0];
+          const encoding = parameters.encodings[0]
           if (encoding.maxBitrate !== bandwidth * 1000) {
-            encoding.maxBitrate = bandwidth * 1000;
-            sender.setParameters(parameters);
+            encoding.maxBitrate = bandwidth * 1000
+            sender.setParameters(parameters)
           }
         })
 
-        return sdp;
+        return sdp
       }
 
       // Fallback to the SDP changes with local renegotiation as way of limiting
@@ -143,11 +157,9 @@ export const createRemoteConnection = ({
   const { userName: nameSelf } = localState.preferences
   const { userStream, displayStream } = localState
 
-  const peer = createPeerInstance(
-    {
-      initiator,
-    },
-  )
+  const peer = createPeerInstance({
+    initiator,
+  })
 
   const connection: IConnection = {
     userId,
@@ -184,6 +196,7 @@ export const createRemoteConnection = ({
   peer.on('signal', sdpSignal => {
     state.socket.emit('request:send_mesage', {
       to: userId,
+      roomId,
       data: {
         sdpSignal,
         metaData: {
@@ -252,6 +265,7 @@ export const createRemoteConnection = ({
   if (!initiator) {
     socket.emit('request:send_mesage', {
       to: userId,
+      roomId,
       data: {
         connection: true,
         userName: nameSelf || '',
@@ -284,9 +298,9 @@ export const requestLeaveRoom = () =>
     if (!room) {
       return {}
     }
-    socket.emit('request:leave_room', { roomId: room.id }, ({ error }) => {
+    socket.emit('request:leave_room', { roomId: room.id }, error => {
       if (error) {
-        toast(error, { type: ToastType.error })
+        toast(error.message, { type: ToastType.error })
       }
     })
     return {}

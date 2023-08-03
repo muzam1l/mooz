@@ -11,7 +11,9 @@ export const useChatState = create<IChatState>()(() => ({
 
 export const onChatReceived = (chat: IChatMessage) => {
   const { userLabel, text } = chat
-  const isInChats = useLocalState.getState().sidePanelTab === 'chats'
+  const localState = useLocalState.getState()
+  const isInChats =
+    localState.sidePanelTab === 'chats' || localState.floatingChatEnabled
   if (!isInChats) {
     toast(`${userLabel} sent a message: ${truncate(text, 45)}`, {
       type: ToastType.info,

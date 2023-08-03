@@ -37,21 +37,17 @@ const JoinMeeting: FC<JoinProps> = () => {
         loading: true,
         error: null,
       })
-      socket.emit(
-        'request:join_room',
-        { userName, roomId },
-        ({ error: err }) => {
-          if (err) {
-            setState({
-              error: err,
-            })
-          }
+      socket.emit('request:join_room', { userName, roomId }, err => {
+        if (err) {
           setState({
-            loading: false,
+            error: err.message,
           })
-          // should redirect to room via event listener in Eagle component
-        },
-      )
+        }
+        setState({
+          loading: false,
+        })
+        // should redirect to room via event listener in Eagle component
+      })
 
       useLocalState.setState({
         preferences: {

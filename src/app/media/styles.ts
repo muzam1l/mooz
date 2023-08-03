@@ -71,7 +71,6 @@ export const classes = mergeStyleSets({
     },
     '@media (max-width: 768px)': {
       width: '100%',
-      flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'flex-start',
       flexWrap: 'nowrap',

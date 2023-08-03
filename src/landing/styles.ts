@@ -9,9 +9,9 @@ export const classes = mergeStyleSets({
   },
   containerInner: {
     margin: 'auto',
-    "@media (max-width: 768px)": {
+    '@media (max-width: 768px)': {
       paddingBottom: '6em',
-    }
+    },
   },
   tagline: {
     padding: '.25em',
