@@ -131,7 +131,7 @@ export const startMediaDevice = async (device: MediaDeviceInfo) => {
       config.audio = false
     }
 
-    ;(await navigator.mediaDevices.getUserMedia(config))
+    ; (await navigator.mediaDevices.getUserMedia(config))
       .getTracks()
       .forEach(track => {
         track.onended = () => stopMediaDevice(device)
@@ -165,7 +165,7 @@ export const startScreenCapture = async () => {
     if (stream.getTracks().length) {
       throw Error('Screen capture already active')
     }
-    ;(
+    ; (
       await navigator.mediaDevices.getDisplayMedia({
         video: { cursor: 'always' } as MediaTrackConstraints,
         audio: {
@@ -190,4 +190,42 @@ export const startScreenCapture = async () => {
     // eslint-disable-next-line no-console
     console.error(err)
   }
+}
+
+
+const enterRoom = {
+  src: '/sounds/enter-room.mp3',
+  volume: 0.2
+}
+const leaveRoom = {
+  src: '/sounds/abort-room.mp3',
+  volume: 0.1
+}
+const chatReceived = {
+  src: '/sounds/chat-received.mp3',
+  volume: 0.3
+}
+
+// User interaction hack!
+const audio = new Audio()
+const onClick = () => {
+  audio.play()
+  window.removeEventListener('click', onClick)
+}
+window.addEventListener('click', onClick)
+
+export const playEnterRoomSound = () => {
+  audio.src = enterRoom.src
+  audio.volume = enterRoom.volume
+  audio.play()
+}
+export const playLeaveRoomSound = () => {
+  audio.src = leaveRoom.src
+  audio.volume = leaveRoom.volume
+  audio.play()
+}
+export const playChatReceivedSound = () => {
+  audio.src = chatReceived.src
+  audio.volume = chatReceived.volume
+  audio.play()
 }

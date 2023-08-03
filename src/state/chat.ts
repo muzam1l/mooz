@@ -2,14 +2,12 @@ import { create } from 'zustand'
 import toast, { Timeout, ToastType } from '../comps/toast'
 import { IChatState, IChatMessage, IPeerData } from './types'
 import { useRemoteState } from './remote'
-import { useLocalState } from './local'
+import { playChatReceivedSound, useLocalState } from './local'
 import { truncate } from '../utils/helpers'
 
 export const useChatState = create<IChatState>()(() => ({
   messages: [],
 }))
-
-const chatAudio = new Audio('/sounds/chat-received.mp3')
 
 export const onChatReceived = (chat: IChatMessage) => {
   const { userLabel, text } = chat
@@ -26,7 +24,7 @@ export const onChatReceived = (chat: IChatMessage) => {
       },
     })
   }
-  chatAudio.play()
+  playChatReceivedSound()
 
   useChatState.setState(state => {
     return {

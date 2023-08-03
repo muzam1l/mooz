@@ -9,7 +9,7 @@ import {
 } from './types'
 import { debug, transformSdp, userLabel } from '../utils/helpers'
 import toast, { Timeout, ToastType } from '../comps/toast'
-import { useLocalState } from './local'
+import { playEnterRoomSound, playLeaveRoomSound, useLocalState } from './local'
 import { useJoinFormState } from './landing'
 import Peer from 'simple-peer'
 import { MAX_BANDWIDTH, MIN_BANDWIDTH } from './constants'
@@ -28,7 +28,7 @@ export const createSocket = () => {
 
   socket.onAny((event, ...args) => {
     debug(`socket.io: got event '${event}' with args:`, ...args)
-  })
+  });
 
   return socket
 }
@@ -160,7 +160,6 @@ export const createRemoteConnection = ({
     })
   })
   peer.on('error', err => {
-    alert('PC ERROR')
     toast('Peer connection error', {
       type: ToastType.blocked,
       body: err.message,
@@ -258,13 +257,11 @@ export const requestLeaveRoom = () =>
     return {}
   })
 
-const enterRoomAudio = new Audio('/sounds/enter-room.mp3')
-enterRoomAudio.volume = 0.2
 export const enterRoom = (room: IRoom) => {
   useRemoteState.setState({
     room,
   })
-  enterRoomAudio.play()
+  playEnterRoomSound()
   window.history.pushState({}, 'Mooz', `/room/${room.id}`)
   toast(`Joined ${room.name}`)
 
@@ -272,9 +269,6 @@ export const enterRoom = (room: IRoom) => {
     roomId: room.id,
   })
 }
-
-const abortRoomAudio = new Audio('/sounds/abort-room.mp3')
-abortRoomAudio.volume = 0.1
 
 export const abortRoom = () => {
   useRemoteState.setState(state => {
@@ -286,7 +280,7 @@ export const abortRoom = () => {
     }
   })
   toast('Room aborted!, enjoy your lonely life', { type: ToastType.warning })
-  abortRoomAudio.play()
+  playLeaveRoomSound()
 
   useLocalState.setState({
     showEmptyMediaPanel: true,

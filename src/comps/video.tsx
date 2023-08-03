@@ -9,6 +9,7 @@ import {
   mergeStyleSets,
   mergeStyles,
   PersonaInitialsColor,
+  DefaultButton,
 } from '@fluentui/react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { FC, VideoHTMLAttributes } from 'react'
@@ -16,6 +17,7 @@ import { fadeIn } from '../utils/theme/common-styles'
 import { useIsSpeaking } from '../hooks/use-is-speaking'
 import { MAX_MEDIA_HEIGHT, MAX_MEDIA_WIDTH, Stream } from '../state'
 import { ConnectionMenu } from './connection-menu'
+import { useIsPaused } from '../hooks/use-is-paused'
 
 const classes = mergeStyleSets({
   video: {
@@ -60,7 +62,7 @@ const classes = mergeStyleSets({
     justifyContent: 'space-between',
     alignItems: 'flex-end',
   },
-  overlay: {
+  centerOverlay: {
     position: 'absolute',
     top: 0,
     left: 0,
@@ -69,6 +71,10 @@ const classes = mergeStyleSets({
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  playButton: {
+    height: 30,
+    borderRadius: 1000,
   },
 })
 
@@ -142,6 +148,8 @@ const VideoBox: FC<VideoBoxProps> = ({
   const borderColor = isSpeaking
     ? theme.semanticColors.errorText
     : theme.palette.neutralLighter
+
+  const { isPaused } = useIsPaused(videoElem.current)
   return (
     <div
       ref={containerRef}
@@ -165,8 +173,18 @@ const VideoBox: FC<VideoBoxProps> = ({
           Seriously, How old are you and your browser!
         </video>
       </div>
+      {isPaused && (
+        <div className={mergeStyles(classes.centerOverlay, { zIndex: 1 })}>
+          <DefaultButton
+            onClick={() => videoElem.current?.play()}
+            className={classes.playButton}
+          >
+            Play
+          </DefaultButton>
+        </div>
+      )}
       {showPersona && (
-        <div className={classes.overlay}>
+        <div className={classes.centerOverlay}>
           <TooltipHost
             delay={0}
             content={stream.empty ? 'No media' : personaText || label}

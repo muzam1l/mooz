@@ -32,7 +32,6 @@ const SidePanel: React.FC<SidePanelProps> = () => {
     ),
     [title],
   )
-  console.log(panel)
   return (
     <div>
       <Panel

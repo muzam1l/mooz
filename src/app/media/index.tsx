@@ -103,8 +103,6 @@ export const Media: FC = () => {
   })
 
   const alignContent = pinnedItem ? 'flex-start' : 'center'
-
-  console.log('Media render', connections[0])
   return (
     <div ref={containerRef} className={classes.container}>
       {/* Pinned View */}
