@@ -1,5 +1,5 @@
 import { createServer } from 'http'
-import { Server, ServerOptions, Socket } from 'socket.io'
+import { Server, ServerOptions } from 'socket.io'
 import { nanoid } from 'nanoid'
 import NodeCache from 'node-cache'
 import {
@@ -272,7 +272,7 @@ io.on('connection', socket => {
     cb?.()
   })
 
-  socket.on('disconnecting', () => {})
+  socket.on('disconnecting', () => { })
 })
 
 function kickOut(userId: string, roomId: string) {
@@ -306,7 +306,7 @@ function getRoomId(idOrLink: string): string | undefined {
   return id
 }
 
-const port = process.env.PORT || 5001
+const port = process.env.PORT || 5005
 httpServer.listen(port, () => {
   console.log('listening on port', port)
 })

@@ -15,21 +15,11 @@ import {
   useRemoteState,
 } from './state'
 import ThemeProvider from './utils/theme/theme-context'
-
-import 'react-toastify/dist/ReactToastify.css'
 import { DOUBLE_CLICK_MS } from './state/constants'
 import { debug } from './utils/helpers'
 
+import 'react-toastify/dist/ReactToastify.css'
 window.process = process
-
-// enforce https in production
-if (
-  process.env.NODE_ENV === 'production' &&
-  window.location.hostname !== 'localhost' &&
-  window.location.protocol === 'http:'
-) {
-  window.location.href = `https://${window.location.href.slice(7)}`
-}
 
 const AppImport = import('./app') // preloading
 const App = lazy(() => AppImport)

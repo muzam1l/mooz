@@ -7,6 +7,7 @@ import Fullscreen from '../comps/full-screen'
 
 import {
   IServerToClientEvent,
+  ISocketMessageData,
   createRemoteConnection,
   destroyRemoteConnection,
   useRemoteState,
@@ -31,7 +32,7 @@ const App: FC = () => {
       })
     }, [])
 
-  const onMessage: IServerToClientEvent['action:message_received'] =
+  const onMessage: IServerToClientEvent<ISocketMessageData>['action:message_received'] =
     useCallback(
       ({ from, data }) => {
         if ('connection' in data) {
