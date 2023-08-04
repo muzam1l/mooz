@@ -2,15 +2,11 @@
 
 Create or join a peer-to-peer meeting instantly. Supports audio, video, screen-share and chat all going through the p2p mesh network which is guaranteed to be of fully-connected type.
 
+https://github.com/muzam1l/mooz/assets/52374648/d86b7e0c-c173-40ce-bd87-4e78161a1053
 
-<a href="https://mooz.muzam1l.com">
-    <div align="center">
-        <div>
-            <img src="mooz.gif" />
-        </div>
-    mooz.muzam1l.com
-    </div>
-</a>
+<p align="center">
+    <a href="https://mooz.muzam1l.com">mooz.muzam1l.com</a>
+</p>
 
 # Libs
 
