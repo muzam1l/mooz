@@ -1,14 +1,15 @@
 {
     "name": "mooz-server",
-    "version": "1.0.0",
+    "version": "2.0.0",
     "private": true,
     "engines": {
-        "node": "14"
+        "node": ">=16"
     },
     "dependencies": {
-        "socket.io": "^3.0.5",
-        "nanoid": "^3.1.20",
-        "node-cache": "^5.1.2"
+        "dotenv": "^16.3.1",
+        "nanoid": "^3.3.6",
+        "node-cache": "^5.1.2",
+        "socket.io": "^4.7.1"
     },
     "scripts": {
         "dev": "nodemon -e ts --exec \"ts-node --project ./tsconfig.json\" ./index.ts",
@@ -16,8 +17,8 @@
         "start": "node ./lib"
     },
     "devDependencies": {
-        "@types/node": "^14.14.21",
+        "@types/node": "^14.18.54",
         "ts-node": "^9.1.1",
-        "typescript": "^4.1.3"
+        "typescript": "^5.1.6"
     }
 }

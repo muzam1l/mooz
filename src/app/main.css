@@ -16,3 +16,7 @@ body {
 *:after {
   box-sizing: border-box;
 }
+
+.Toastify__toast-container {
+  z-index: 10000001;
+}

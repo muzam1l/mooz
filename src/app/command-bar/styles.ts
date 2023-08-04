@@ -1,51 +1,62 @@
 import { FontSizes, FontWeights, mergeStyles } from '@fluentui/react'
-// eslint-disable-next-line import/no-extraneous-dependencies
-import { NeutralColors } from '@fluentui/theme'
-import type { IButtonStyles, ICommandBarStyles } from '@fluentui/react'
-
-export const buttonStyles: IButtonStyles = {
-    icon: {
-        fontSize: FontSizes.xLarge,
-    },
-}
+import type { ICommandBarStyles } from '@fluentui/react'
+import { darkTheme, lightTheme } from '../../utils/theme/themes'
+import { COMMANDBAR_HEIGHT } from '../../state'
 
 export const lightOption = mergeStyles({
-    backgroundColor: NeutralColors.gray30,
-    '& :hover': {
-        backgroundColor: NeutralColors.gray20,
-    },
-    '& button, & button:hover': {
-        color: NeutralColors.black,
-    },
+  '&, & button': {
+    color: lightTheme.semanticColors.bodyText,
+    backgroundColor: lightTheme.semanticColors.bodyBackground,
+  },
+  '& button:hover, & button:focus': {
+    color: lightTheme.semanticColors.bodyText,
+    backgroundColor: `${lightTheme.semanticColors.bodyBackgroundHovered} !important`,
+  },
 })
 export const darkOption = mergeStyles({
-    backgroundColor: NeutralColors.gray140,
-    '& :hover': {
-        backgroundColor: NeutralColors.gray150,
-    },
-    '& button, & button:hover': {
-        color: NeutralColors.white,
-    },
+  '&, & button': {
+    color: darkTheme.semanticColors.bodyText,
+    backgroundColor: darkTheme.semanticColors.bodyBackground,
+  },
+  '& button:hover, & button:focus': {
+    color: darkTheme.semanticColors.bodyText,
+    backgroundColor: `${darkTheme.semanticColors.bodyBackgroundHovered} !important`,
+  },
 })
 
-export const containerStyles: ICommandBarStyles = {
-    root: {
-        padding: '0 .5em',
-        height: '40px',
-    },
+export const commandbarStyles: ICommandBarStyles = {
+  root: {
+    padding: '0 .5em',
+    margin: '.25em 0',
+    height: COMMANDBAR_HEIGHT,
+    borderRadius: 0,
+  },
 }
 
-export const LeaveButtonStyles = {
-    root: {
-        margin: 'auto .5em',
-        transition: 'all .1s ease',
-    },
-    rootHovered: {
-        backgroundColor: '#CE0B1B',
-        color: 'white',
-    },
-    label: {
-        fontSize: FontSizes.mediumPlus,
-        fontWeight: FontWeights.regular,
-    },
+export const leaveButtonStyles = {
+  root: {
+    margin: 'auto .5em',
+    transition: 'all .1s ease',
+    height: '100%',
+  },
+  rootHovered: {
+    backgroundColor: '#CE0B1B',
+    color: 'white',
+  },
+  label: {
+    fontSize: FontSizes.mediumPlus,
+    fontWeight: FontWeights.regular,
+  },
+}
+export const copyButtonStyles = {
+  root: {
+    fontWeight: FontWeights.bold,
+    margin: 'auto .5em',
+    transition: 'all .1s ease',
+    height: '100%',
+  },
+  label: {
+    fontSize: FontSizes.small,
+    fontWeight: FontWeights.semibold,
+  },
 }

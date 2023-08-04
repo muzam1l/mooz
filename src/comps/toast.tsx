@@ -1,47 +1,68 @@
-import { toast } from 'react-toastify'
-import { mergeStyleSets, MessageBar, MessageBarType } from '@fluentui/react'
-import { FunctionComponent, ReactText } from 'react'
+import { toast as toastify, ToastOptions } from 'react-toastify'
+import {
+  getTheme,
+  mergeStyleSets,
+  MessageBar,
+  MessageBarType,
+  Text,
+} from '@fluentui/react'
 
-interface TextProp {
-    text: string
-    type?: MessageBarType
+type IToastOptions = {
+  body?: string
+  type?: MessageBarType
+  onClick?: () => void
+} & Omit<ToastOptions, 'type' | 'onClick'>
+
+const toast = (text: string, options?: IToastOptions) => {
+  const { type, body, onClick, ...rest } = options || {}
+  const theme = getTheme()
+  const color =
+    type === MessageBarType.error || type === MessageBarType.blocked
+      ? theme.semanticColors.errorText
+      : type === MessageBarType.success
+      ? theme.semanticColors.successIcon
+      : type === MessageBarType.warning || type === MessageBarType.severeWarning
+      ? theme.semanticColors.warningIcon
+      : theme.semanticColors.messageText
+  return toastify(
+    <MessageBar
+      onClick={onClick}
+      messageBarType={type}
+      truncated
+      isMultiline={true}
+      style={{ width: '100%' }}
+    >
+      {text}
+      {body && (
+        <Text styles={{ root: { color } }} block variant="small">
+          {body}
+        </Text>
+      )}
+    </MessageBar>,
+    rest,
+  )
 }
-const Text: FunctionComponent<TextProp> = ({ text, type }) => (
-    <MessageBar messageBarType={type} truncated isMultiline={false}>
-        {text}
-    </MessageBar>
-)
 
-interface ToastOptions {
-    type?: MessageBarType
-    [index: string]: any // eslint-disable-line
-}
-
-const myToast = (text: string, options?: ToastOptions): ReactText => {
-    const { type, ...rest } = options || {}
-    return toast(<Text text={text} type={type} />, rest)
-}
-
-export default myToast
-export const dismissToast = toast.dismiss
+export default toast
+export const dismissToast = toastify.dismiss
 
 export const Timeout = {
-    SHORT: 1500,
-    MEDIUM: 3000,
-    LONG: 5000,
-    PERSIST: false,
-}
+  SHORT: 1500,
+  MEDIUM: 3000,
+  LONG: 5000,
+  PERSIST: false,
+} as const
 
 export { MessageBarType as ToastType } from '@fluentui/react'
 
 export const toastClasses = mergeStyleSets({
-    container: {
-        marginBottom: '.25em !important',
-        padding: '0 !important',
-        minHeight: '0 !important',
-    },
-    body: {
-        padding: '0 !important',
-        width: '100%',
-    },
+  container: {
+    marginBottom: '.25em !important',
+    padding: '0 !important',
+    minHeight: '0 !important',
+  },
+  body: {
+    padding: '0 !important',
+    width: '100%',
+  },
 })

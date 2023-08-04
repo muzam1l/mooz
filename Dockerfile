@@ -1,23 +1,27 @@
-FROM node:14-alpine as builder
+FROM node:18-alpine as builder
 
-ARG SOCKET_PORT=5000
-ENV REACT_APP_SOCKET_PORT=${SOCKET_PORT}
+ARG SOCKET_PORT=5005
+ENV REACT_APP_SAME_ORIGIN_SOCKET_PORT=${SOCKET_PORT}
 
 WORKDIR /app
 
-COPY ["package.json", "package-lock.json*", "./"]
+COPY ["package.json", "yarn.lock", "./"]
 
-RUN npm install
+RUN yarn install \
+  --prefer-offline \
+  --frozen-lockfile \
+  --non-interactive \
+  --production=false
 
 COPY . .
 
-RUN npm run build
+RUN yarn build
 
 FROM nginx:alpine
 
-COPY ./.nginx/nginx.conf /etc/nginx/nginx.conf
+COPY nginx.conf /etc/nginx/nginx.conf
 
-## Remove default nginx index page
+# Remove default nginx index page
 # RUN rm -rf /usr/share/nginx/html/*
 
 COPY --from=builder /app/build /usr/share/nginx/html

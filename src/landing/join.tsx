@@ -1,78 +1,99 @@
-import { useState, useCallback } from 'react'
-import { useRecoilState, useRecoilValue } from 'recoil'
-import { Stack, TextField, PrimaryButton, useTheme, Label } from '@fluentui/react'
-import type { FormEvent, FunctionComponent } from 'react'
-import { mb2, submit } from './styles'
-import { preferencesState, socketState } from '../atoms'
+import { useCallback, useState } from 'react'
+import {
+  Stack,
+  TextField,
+  PrimaryButton,
+  useTheme,
+  Label,
+  Spinner,
+} from '@fluentui/react'
+import type { FormEvent, FC } from 'react'
+import { classes } from './styles'
+import { useJoinFormState, useLocalState, useRemoteState } from '../state'
+import { commonClasses } from '../utils/theme/common-styles'
 
-interface JoinProps {
-    defaultId?: string
-}
+interface JoinProps {}
 
-const JoinMeeting: FunctionComponent<JoinProps> = ({ defaultId }) => {
-    const theme = useTheme()
-    const [preferences, setPreferences] = useRecoilState(preferencesState)
-    const socket = useRecoilValue(socketState)
-    const [link, setLink] = useState(defaultId)
-    const [name, setName] = useState(preferences.name)
-    const [disabled, setDisabled] = useState(false)
-    const [error, setError] = useState<string | null>(null)
+const JoinMeeting: FC<JoinProps> = () => {
+  const [userNameError, setUserNameError] = useState('')
 
-    // no need for useCallback as set-state functions dont change
-    const onError = (err: string) => {
-        setDisabled(false)
-        setError(err)
-    }
+  const theme = useTheme()
+  const [socket] = useRemoteState(state => [state.socket])
+  const [preferences] = useLocalState(state => [state.preferences])
 
-    const handleSubmit = useCallback(
-        (e: FormEvent<HTMLFormElement>) => {
-            e.preventDefault()
-            if (disabled) return
-            setError(null)
-            setDisabled(true)
-            socket.emit('join_room', { name, link }, ({ error: err }: { error?: string }) => {
-                // on  should redirect to main app via 'joined_room' event listened in src/index
-                if (err) {
-                    onError(err)
-                }
-                setPreferences({ name })
-            })
+  const { loading, error, userName, roomId } = useJoinFormState()
+  const setState = useJoinFormState.setState
+
+  const handleSubmit = useCallback(
+    (e: FormEvent<HTMLFormElement>) => {
+      e.preventDefault()
+      if (!userName.trim()) {
+        setUserNameError('Please enter your name')
+        return
+      }
+      if (loading) return
+
+      setState({
+        loading: true,
+        error: null,
+      })
+      socket.emit('request:join_room', { userName, roomId }, err => {
+        if (err) {
+          setState({
+            error: err.message,
+          })
+        }
+        setState({
+          loading: false,
+        })
+        // should redirect to room via event listener in Eagle component
+      })
+
+      useLocalState.setState({
+        preferences: {
+          ...preferences,
+          userName,
         },
-        [disabled, setDisabled, socket, link, name, setError, setPreferences],
-    )
+      })
+    },
+    [loading, preferences, roomId, setState, socket, userName],
+  )
 
-    return (
-        <Stack>
-            <form onSubmit={handleSubmit}>
-                <Stack.Item>
-                    <TextField
-                        className={mb2}
-                        value={link}
-                        onChange={(_, val) => setLink(val || '')}
-                        label="Meeting link or id"
-                        required
-                    />
-                </Stack.Item>
-                <Stack.Item>
-                    <TextField
-                        value={name}
-                        onChange={(_, val) => setName(val || '')}
-                        placeholder="Your name"
-                        required
-                    />
-                </Stack.Item>
-                <Label style={{ color: theme.palette.red }}>{error}</Label>
-                <Stack.Item>
-                    <PrimaryButton
-                        type="submit"
-                        disabled={disabled}
-                        className={submit}
-                        text="Join"
-                    />
-                </Stack.Item>
-            </form>
-        </Stack>
-    )
+  return (
+    <Stack>
+      <form onSubmit={handleSubmit}>
+        <Stack.Item>
+          <TextField
+            className={commonClasses.mb2}
+            value={roomId}
+            onChange={(_, roomId = '') => setState({ roomId })}
+            label="Meeting link or id"
+            required
+          />
+        </Stack.Item>
+        <Stack.Item>
+          <TextField
+            value={userName}
+            onChange={(_, userName = '') => {
+              setState({ userName })
+              if (userNameError) {
+                setUserNameError('')
+              }
+            }}
+            placeholder="Your name"
+            errorMessage={userNameError}
+            required
+          />
+        </Stack.Item>
+        <Label style={{ color: theme.palette.red }}>{error}</Label>
+        <Stack.Item>
+          <PrimaryButton type="submit" className={classes.submit}>
+            {loading ? <Spinner labelPosition="left" /> : 'Join'}
+          </PrimaryButton>
+        </Stack.Item>
+      </form>
+    </Stack>
+  )
 }
 
 export default JoinMeeting

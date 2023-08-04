@@ -1,88 +1,125 @@
-import { useRecoilState, useRecoilValue } from 'recoil'
 import { useCallback, useState } from 'react'
-import type { FunctionComponent, FormEvent } from 'react'
-import { Stack, TextField, PrimaryButton, SpinButton, Label, useTheme } from '@fluentui/react'
-import { submit, mb2 } from './styles'
-import { socketState, Room, preferencesState } from '../atoms'
+import type { FC, FormEvent } from 'react'
+import {
+  Stack,
+  TextField,
+  SpinButton,
+  Label,
+  useTheme,
+  Spinner,
+  PrimaryButton,
+} from '@fluentui/react'
+import { classes } from './styles'
+import {
+  IRoom,
+  useCreateFormState,
+  useLocalState,
+  useRemoteState,
+} from '../state'
+import { commonClasses } from '../utils/theme/common-styles'
 
-const CreateMeeting: FunctionComponent = () => {
-    const [preferences, setPreferences] = useRecoilState(preferencesState)
-    const theme = useTheme()
-    const socket = useRecoilValue(socketState)
-    const [max, setMax] = useState('5')
-    const [meetingName, setMeetingName] = useState('')
-    const [personName, setPersonName] = useState(preferences.name)
-    const [disabled, setDisabled] = useState(false)
-    const [error, setError] = useState<string | null>(null)
+const CreateMeeting: FC = () => {
+  const [userNameError, setUserNameError] = useState('')
 
-    // no need for useCallback as set-state functions dont change
-    const onError = () => {
-        setDisabled(false)
-        setError('Something went wrong, try again later (ˉ﹃ˉ)')
-    }
+  const preferences = useLocalState(state => state.preferences)
+  const socket = useRemoteState(state => state.socket)
 
-    const handleSubmit = useCallback(
-        (e: FormEvent<HTMLFormElement>) => {
-            e.preventDefault()
-            if (disabled) return
-            setError(null)
-            setDisabled(true)
-            const room: Room = {
-                name: meetingName,
-                created_by: personName,
-                opts: {
-                    maxPeople: max,
-                },
-            }
-            socket.emit('create_room', room, ({ isError }: { isError: boolean }) => {
-                // on success it should redirect to main app via 'joined_room' event listened in src/index
-                if (isError) {
-                    onError()
-                }
-                setPreferences({ name: personName })
-            })
+  const { capacity, meetingName, userName, loading, error } =
+    useCreateFormState()
+  const setState = useCreateFormState.setState
+
+  const theme = useTheme()
+  const handleSubmit = useCallback(
+    (e: FormEvent<HTMLFormElement>) => {
+      e.preventDefault()
+      if (!userName.trim()) {
+        setUserNameError('Please enter your name')
+        return
+      }
+
+      if (loading) return
+
+      setState({
+        error: null,
+        loading: true,
+      })
+      const room: IRoom = {
+        id: '',
+        name: meetingName,
+        created_by: userName,
+        opts: {
+          capacity: parseInt(capacity) || 0,
         },
-        [disabled, setDisabled, socket, max, meetingName, personName, setError, setPreferences],
-    )
+      }
+      socket.emit('request:create_room', { room }, err => {
+        // on success it should redirect to main app via 'joined_room' event listened in src/index
+        if (err) {
+          setState({
+            error: err.message,
+          })
+        }
+        setState({
+          loading: false,
+        })
+      })
 
-    return (
-        <Stack>
-            <form onSubmit={handleSubmit}>
-                <SpinButton
-                    className={mb2}
-                    value={max}
-                    onChange={(_, val) => setMax(val || '1')}
-                    label="Maximum number of participants"
-                    min={1}
-                    max={1000}
-                    step={1}
-                    incrementButtonAriaLabel="Increase value by 1"
-                    decrementButtonAriaLabel="Decrease value by 1"
-                />
-                <TextField
-                    className={mb2}
-                    value={personName}
-                    onChange={(_, val) => setPersonName(val || '')}
-                    placeholder="Your name"
-                    required
-                />
-                <TextField
-                    value={meetingName}
-                    onChange={(_, val) => setMeetingName(val || '')}
-                    placeholder="Meeting name"
-                />
-                <Label style={{ color: theme.palette.red }}>{error}</Label>
-                <Stack.Item>
-                    <PrimaryButton
-                        disabled={disabled}
-                        type="submit"
-                        className={submit}
-                        text="Create"
-                    />
-                </Stack.Item>
-            </form>
-        </Stack>
-    )
+      useLocalState.setState({
+        preferences: {
+          ...preferences,
+          userName,
+          meetingName,
+        },
+      })
+    },
+    [loading, setState, meetingName, userName, capacity, socket, preferences],
+  )
+
+  return (
+    <Stack>
+      <form onSubmit={handleSubmit}>
+        <SpinButton
+          className={commonClasses.mb2}
+          value={capacity.toString()}
+          onChange={(_, capacity = '1') => setState({ capacity })}
+          label="Maximum number of participants"
+          min={1}
+          max={50}
+          step={1}
+          incrementButtonAriaLabel="Increase value by 1"
+          decrementButtonAriaLabel="Decrease value by 1"
+        />
+        <TextField
+          className={commonClasses.mb2}
+          value={userName}
+          onChange={(_, userName = '') => {
+            setState({ userName })
+            if (userNameError) {
+              setUserNameError('')
+            }
+          }}
+          placeholder="Your name"
+          errorMessage={userNameError}
+          required
+        />
+        <TextField
+          value={meetingName}
+          onChange={(_, meetingName = '') => setState({ meetingName })}
+          placeholder="Meeting name"
+        />
+        <Label style={{ color: theme.palette.red }}>{error}</Label>
+        <Stack.Item>
+          <PrimaryButton
+            disabled={loading}
+            checked={loading}
+            type="submit"
+            className={classes.submit}
+          >
+            {loading ? <Spinner labelPosition="left" /> : 'Create'}
+          </PrimaryButton>
+        </Stack.Item>
+      </form>
+    </Stack>
+  )
 }
 
 export default CreateMeeting

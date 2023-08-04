@@ -1,186 +1,86 @@
-import { ReactText, useCallback, useEffect, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import {
-    Stack,
-    Persona,
-    List,
-    PersonaPresence,
-    useTheme,
-    PersonaSize,
-    IconButton,
-    ContextualMenu,
-    ContextualMenuItemType,
-    DefaultButton,
+  Stack,
+  Persona,
+  useTheme,
+  PersonaSize,
+  IconButton,
 } from '@fluentui/react'
-import { useRecoilValue } from 'recoil'
-import type { FunctionComponent } from 'react'
-import { vFluid, vScroll, message } from './styles'
-import { Connection, connectionsState } from '../../atoms'
-import InfoCallout from '../../comps/info-callout'
-import toast, { dismissToast, Timeout, ToastType } from '../../comps/toast'
+import type { FC } from 'react'
+import InfoCallout from '../../comps/info-overlay'
+import { IConnection, useRemoteState } from '../../state'
+import { HoverButton } from '../../comps/hover-button'
+import { commonClasses } from '../../utils/theme/common-styles'
+import { userLabel } from '../../utils/helpers'
+import { ConnectionMenu } from '../../comps/connection-menu'
+import { classes } from './styles'
 
-const PersonComponent: FunctionComponent<{ item?: Connection; index?: number }> = ({
-    index,
-    item,
-}) => {
-    const [mouseEvent, setMouseEvent] = useState<MouseEvent | null>(null)
-    const theme = useTheme()
-    const [presence, setPresence] = useState(PersonaPresence.away)
-    useEffect(() => {
-        const onConnected = () => setPresence(PersonaPresence.online)
-        const onClose = () => setPresence(PersonaPresence.offline)
-        const { peer } = window.moozPeers?.find(p => p.partnerId === item?.partnerId) || {}
-        peer?.on('connect', onConnected)
-        peer?.on('close', onClose)
-        return () => {
-            peer?.off('connect', onConnected)
-            peer?.off('close', onClose)
-        }
-    }, [item])
-    if (!item || index === undefined) return null
-    const showNotImplemented = () => {
-        toast('Not Implemented yet', { autoClose: Timeout.SHORT, type: ToastType.severeWarning })
-    }
-    return (
-        <>
-            <Stack
-                key={item.partnerId}
-                onContextMenu={e => {
-                    e.preventDefault()
-                    // eslint-disable-next-line
-                    setMouseEvent(e as any)
-                }}
-                styles={{
-                    root: {
-                        padding: '.5em .75em',
-                        cursor: 'default',
-                        ':hover': {
-                            backgroundColor: theme.semanticColors.listItemBackgroundHovered,
-                        },
-                    },
-                }}
-                horizontal
-                horizontalAlign="space-between"
-            >
-                <Persona
-                    presence={presence}
-                    text={item.partnerName || `<${item.partnerId}>`}
-                    secondaryText="Online"
-                    size={PersonaSize.size32}
-                />
-                <IconButton
-                    onClick={e => {
-                        // eslint-disable-next-line
-                        setMouseEvent(e as any)
-                    }}
-                    iconProps={{ iconName: 'More' }}
-                />
-            </Stack>
-            <ContextualMenu
-                items={[
-                    {
-                        key: 'header1',
-                        itemType: ContextualMenuItemType.Header,
-                        text: item.partnerName,
-                    },
-                    {
-                        key: 'mute',
-                        text: 'Mute',
-                        iconProps: { iconName: 'MicOff' },
-                        onClick: showNotImplemented,
-                    },
-                    {
-                        key: 'hide',
-                        text: 'Hide',
-                        iconProps: { iconName: 'VideoOff' },
-                        onClick: showNotImplemented,
-                    },
-                    {
-                        key: 'divider1',
-                        itemType: ContextualMenuItemType.Divider,
-                    },
-                    {
-                        key: 'kick',
-                        text: 'Kick out',
-                        iconProps: { iconName: 'SignOut' },
-                        onClick: showNotImplemented,
-                    },
-                ]}
-                onDismiss={() => {
-                    setMouseEvent(null)
-                }}
-                hidden={!mouseEvent}
-                target={mouseEvent}
-            />
-        </>
-    )
+const PersonComponent: FC<{ item: IConnection }> = ({ item }) => {
+  const theme = useTheme()
+  const ref = useRef<HTMLDivElement>(null)
+  const iconRef = useRef<HTMLButtonElement | null>(null)
+
+  const label = userLabel(item)
+  return (
+    <div ref={ref} className={classes.personContainer}>
+      <Stack
+        key={item.userId}
+        styles={{
+          root: {
+            padding: '.5em .75em',
+            cursor: 'default',
+            ':hover': {
+              backgroundColor: theme.semanticColors.listItemBackgroundHovered,
+            },
+          },
+        }}
+        horizontal
+        horizontalAlign="space-between"
+      >
+        <Persona text={label} size={PersonaSize.size32} />
+        <IconButton elementRef={iconRef} iconProps={{ iconName: 'More' }} />
+      </Stack>
+      <ConnectionMenu
+        label={label}
+        clickTarget={iconRef.current}
+        target={ref.current}
+      />
+    </div>
+  )
 }
 
-const PeoplePanel: FunctionComponent = () => {
-    const connections = useRecoilValue(connectionsState)
-    const onRenderPerson = useCallback(
-        (item?: Connection, index?: number) => <PersonComponent item={item} index={index} />,
-        [],
-    )
-    const [showInfo, setShowInfo] = useState(false)
-    const aloneToast = useRef<ReactText>()
-    useEffect(() => {
-        if (!connections.length && !aloneToast.current)
-            aloneToast.current = toast(
-                'You are curently alone 💩, make some friends and then invite them!',
-                {
-                    autoClose: Timeout.PERSIST,
-                    type: ToastType.info,
-                },
-            )
-        else if (connections.length && aloneToast.current) {
-            if (aloneToast.current) {
-                dismissToast(aloneToast.current)
-                aloneToast.current = undefined
-            }
-        }
-    }, [connections])
-    useEffect(
-        () => () => {
-            if (aloneToast.current) dismissToast(aloneToast.current)
-        },
-        [],
-    )
-    return (
-        <Stack verticalAlign="center" className={vFluid}>
-            {!connections.length ? (
-                <div className={message}>
-                    <span>You are currently alone right now, invite some people to join</span>
-                    <DefaultButton
-                        onClick={() => setShowInfo(!showInfo)}
-                        text="Info"
-                        className="info-button-in-person-list"
-                        style={{ marginTop: '.5em' }}
-                    />
-                </div>
-            ) : (
-                <Stack className={vFluid} horizontalAlign="center">
-                    <DefaultButton
-                        onClick={() => setShowInfo(!showInfo)}
-                        text="Info"
-                        className="info-button-in-person-list"
-                        style={{ marginBottom: '.5em' }}
-                    />
-                    <List
-                        style={{ width: '100%' }}
-                        className={vScroll}
-                        items={connections}
-                        onRenderCell={onRenderPerson}
-                    />
-                </Stack>
-            )}
-            {showInfo && (
-                <InfoCallout
-                    onDismiss={() => setShowInfo(false)}
-                    target=".info-button-in-person-list"
-                />
-            )}
+const PeoplePanel: FC = () => {
+  const connections = useRemoteState(state => state.connections)
+  const [showInfo, setShowInfo] = useState(false)
+  return (
+    <Stack verticalAlign="center" verticalFill>
+      {!connections.length ? (
+        <div className={commonClasses.message}>
+          <span>
+            You are currently alone right now, invite some people to join
+          </span>
+          <HoverButton
+            onClick={() => setShowInfo(!showInfo)}
+            text="Info"
+            className="info-button-in-person-list"
+            style={{ marginTop: '.5em' }}
+          />
+        </div>
+      ) : (
+        <Stack verticalFill horizontalAlign="center">
+          {connections.map(conn => (
+            <PersonComponent item={conn} key={conn.userId} />
+          ))}
         </Stack>
-    )
+      )}
+      {showInfo && (
+        <InfoCallout
+          onDismiss={() => setShowInfo(false)}
+          target=".info-button-in-person-list"
+        />
+      )}
+    </Stack>
+  )
 }
 
 export default PeoplePanel
