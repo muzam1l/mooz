@@ -10,9 +10,11 @@ import {
   ISocketData,
 } from './types'
 import { DefaultEventsMap } from 'socket.io/dist/typed-events'
+import packageJson from './package.json'
 
 import 'dotenv/config'
 
+console.log('version', packageJson.version)
 console.log('allow', process.env.ALLOW_ORIGIN)
 const httpServer = createServer()
 const serverOpts: Partial<ServerOptions> = {

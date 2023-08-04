@@ -1,6 +1,6 @@
 {
     "name": "mooz",
-    "version": "1.0.0",
+    "version": "2.0.0",
     "private": true,
     "engines": {
         "node": ">=16"
@@ -25,8 +25,9 @@
         "zustand": "^4.4.0"
     },
     "scripts": {
-        "dev": "craco start",
-        "build": "npm run format && npm run lint && craco build",
+        "set_env": "REACT_APP_VERSION=$npm_package_version REACT_APP_NAME=$npm_package_name",
+        "dev": "npm run set_env craco start",
+        "build": "npm run format && npm run lint && npm run set_env craco build",
         "format": "prettier --write src",
         "lint": "eslint src"
     },
