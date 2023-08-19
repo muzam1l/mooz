@@ -16,7 +16,11 @@ import 'dotenv/config'
 
 console.log('version', packageJson.version)
 console.log('allow', process.env.ALLOW_ORIGIN)
-const httpServer = createServer()
+const httpServer = createServer((_, res) => {
+  res.statusCode = 200;
+  res.setHeader('Content-Type', 'text/plain');
+  res.end('ok\n');
+})
 const serverOpts: Partial<ServerOptions> = {
   cors: {
     origin: JSON.parse(process.env.ALLOW_ORIGIN || '"*"'),
