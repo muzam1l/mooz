@@ -14,6 +14,7 @@ import packageJson from './package.json'
 
 import 'dotenv/config'
 
+console.log('env', process.env)
 console.log('version', packageJson.version)
 console.log('allow', process.env.ALLOW_ORIGIN)
 const httpServer = createServer((_, res) => {
