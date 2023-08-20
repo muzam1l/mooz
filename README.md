@@ -1,3 +1,6 @@
+[![Netlify Status](https://api.netlify.com/api/v1/badges/34ca34b4-fd05-471c-b089-318757ff59c0/deploy-status)](https://app.netlify.com/sites/mooz-app/deploys)
+[![Azure Status](https://github.com/muzam1l/mooz/actions/workflows/master_mooz-socket.yml/badge.svg)](./.github/workflows/master_mooz-socket.yml)
+
 # Mooz
 
 Create or join a peer-to-peer meeting instantly. Supports audio, video, screen-share and chat all going through the p2p mesh network which is guaranteed to be of fully-connected type.
