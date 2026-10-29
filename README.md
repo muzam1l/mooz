@@ -75,3 +75,5 @@ And head over to localhost! If you want to use same setup in production environm
 # More
 
 Still reading? Get a life dude!
+
+Run the server with `yarn --cwd server start`; see the [server README](server/README.md) for options.
