@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mooz · Vercel WebSocket probe</title>
+<style>
+  body { font: 17px/1.6 system-ui, sans-serif; max-width: 760px; margin: 4rem auto; padding: 0 1rem; color: #182133; }
+  button, input { font: inherit; padding: .5rem; margin: .3rem 0; }
+  pre { background: #eef1f7; padding: 1rem; white-space: pre-wrap; overflow-wrap: anywhere; }
+</style>
+<h1>Mooz · Vercel WebSocket probe</h1>
+<p>This tests the Socket.IO transport used by Mooz. It does not create meetings.</p>
+<p>Open two tabs and compare instance IDs. Matching IDs today do not guarantee future connections reach the same instance.</p>
+<p id="status" role="status">Connecting…</p>
+<p id="age">Connection age: 0 seconds</p>
+<form id="echo">
+  <label>Message <input id="message" value="Hello from Mooz" maxlength="1000" required></label>
+  <button>Send echo</button>
+</form>
+<button id="reconnect" type="button">Reconnect now</button>
+<p>Leave this open beyond five minutes to observe Vercel's Hobby timeout and automatic reconnect. Only protocol heartbeats run while you wait; no application polling.</p>
+<p>Idle sockets still use provisioned-memory allowance. Check actual CPU, memory and transfer usage in your Vercel dashboard after testing.</p>
+<pre id="log" aria-live="polite"></pre>
+<script src="/api/socket/socket.io/socket.io.js"></script>
+<script>
+  const status = document.querySelector('#status')
+  const log = document.querySelector('#log')
+  let startedAt = null
+  let connections = 0
+  function record(event, data) {
+    const line = `${new Date().toISOString()} ${event} ${JSON.stringify(data ?? '')}`
+    log.textContent = [line, ...log.textContent.split('\n')].slice(0, 40).join('\n')
+  }
+  const socket = io(window.location.origin, {
+    path: '/api/socket/socket.io',
+    transports: ['websocket'],
+    reconnectionDelay: 1000,
+    reconnectionDelayMax: 10000,
+  })
+  socket.on('connect', () => {
+    startedAt = Date.now()
+    connections += 1
+    status.textContent = `Connected via ${socket.io.engine.transport.name}. Connections: ${connections}`
+    record('connect', { socketId: socket.id })
+  })
+  socket.on('instance', data => record('instance', data))
+  socket.on('disconnect', reason => {
+    startedAt = null
+    status.textContent = `Disconnected: ${reason}`
+    record('disconnect', reason)
+  })
+  socket.on('connect_error', error => {
+    status.textContent = `Connection error: ${error.message}`
+    record('connect_error', error.message)
+  })
+  setInterval(() => {
+    document.querySelector('#age').textContent = startedAt
+      ? `Connection age: ${Math.floor((Date.now() - startedAt) / 1000)} seconds`
+      : 'Waiting for connection…'
+  }, 1000)
+  document.querySelector('#echo').addEventListener('submit', event => {
+    event.preventDefault()
+    if (!socket.connected) return record('echo', 'Connect first')
+    socket.timeout(5000).emit('echo', document.querySelector('#message').value, (error, reply) => {
+      record('echo', error ? error.message : reply)
+    })
+  })
+  document.querySelector('#reconnect').addEventListener('click', () => {
+    socket.disconnect().connect()
+  })
+</script>
+</html>
